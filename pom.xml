@@ -13,5 +13,17 @@
         <maven.compiler.target>19</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>us.hebi.matlab.mat</groupId>
+            <artifactId>mfl-core</artifactId>
+            <version>0.5.12</version>
+        </dependency>
+        <dependency>
+            <groupId>us.hebi.matlab.mat</groupId>
+            <artifactId>mfl-ejml</artifactId>
+            <version>0.5.12</version>
+        </dependency>
+    </dependencies>
 
 </project>
