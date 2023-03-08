@@ -2,6 +2,8 @@ package no.haavardsjef.pso;
 
 import com.github.sh0nk.matplotlib4j.Plot;
 import com.github.sh0nk.matplotlib4j.PythonExecutionException;
+import no.haavardsjef.AbstractFitnessFunction;
+import no.haavardsjef.fcm.FCM;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ public class SwarmPopulation {
     public int lowerBound;
     public int upperBound;
 
+    public AbstractFitnessFunction fitnessFunction;
+
     public SwarmPopulation(int numParticles, int numDimensions, int lowerBound, int upperBound) {
         this.numParticles = numParticles;
         this.numDimensions = numDimensions;
@@ -25,9 +29,12 @@ public class SwarmPopulation {
         this.globalBestFitness = 0;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
+        this.fitnessFunction = new FCM(2.0f);
+
+
 
         for (int i = 0; i < numParticles; i++) {
-            Particle particle = new Particle(numDimensions, lowerBound, upperBound, new Squared());
+            Particle particle = new Particle(numDimensions, lowerBound, upperBound, this.fitnessFunction);
             particle.initializeRandomly();
             particles.add(particle);
         }
@@ -52,7 +59,7 @@ public class SwarmPopulation {
     }
 
     public static void main(String[] args) {
-        SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, 0, 10);
+        SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, 0, 200);
         // Start timer
         long startTime = System.nanoTime();
         swarmPopulation.optimize(100, 2f, 0.5f, 0.5f);

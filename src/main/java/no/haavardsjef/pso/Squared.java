@@ -1,5 +1,7 @@
 package no.haavardsjef.pso;
 
+import no.haavardsjef.AbstractFitnessFunction;
+
 public class Squared extends AbstractFitnessFunction {
     @Override
     public float evaluate(float[] position) {
