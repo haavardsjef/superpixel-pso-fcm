@@ -11,5 +11,6 @@ public class Main {
 
         DataLoader dataLoader = new DataLoader();
         dataLoader.loadData();
+        System.out.println(dataLoader.getNumBands());
     }
 }

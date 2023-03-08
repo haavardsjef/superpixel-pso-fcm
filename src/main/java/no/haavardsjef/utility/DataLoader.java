@@ -10,6 +10,8 @@ import java.io.IOException;
 
 public class DataLoader {
 
+    private double[][][] data;
+
     public void loadData() {
         try {
             Source source = Sources.openFile("indian_pines_corrected.mat");
@@ -26,10 +28,19 @@ public class DataLoader {
                 }
             }
 
+            this.data = dataCube;
             System.out.println("Successfully loaded data!");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public double[][][] getData() {
+        return data;
+    }
+
+    public int getNumBands() {
+        return data.length;
     }
 }
