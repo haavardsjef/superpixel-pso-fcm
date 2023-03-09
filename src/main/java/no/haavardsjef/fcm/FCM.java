@@ -1,44 +1,36 @@
 package no.haavardsjef.fcm;
 
 import no.haavardsjef.AbstractFitnessFunction;
-import no.haavardsjef.utility.DataLoader;
+import no.haavardsjef.fcm.distancemetrics.IDistance;
+import no.haavardsjef.utility.IDataLoader;
 
 import java.util.Arrays;
 
 public class FCM extends AbstractFitnessFunction {
 
-    private DataLoader dataLoader;
+    private IDataLoader dataLoader;
     private float m;
+    private IDistance distanceMetric;
 
-    public FCM(float m) {
-        this.dataLoader = new DataLoader();
-        dataLoader.loadData();
+    public FCM(float m, IDistance distanceMetric, IDataLoader dataLoader) {
         this.m = m;
+        this.distanceMetric = distanceMetric;
+        this.dataLoader = dataLoader;
+        dataLoader.loadData();
     }
 
-
-    private float distance(int band1, int band2){
-        double[] band1_data = this.dataLoader.getSpecificBandFlatted(band1);
-        double[] band2_data = this.dataLoader.getSpecificBandFlatted(band2);
-
-        float result = 0f;
-
-        for (int i = 0; i < band1_data.length; i++) {
-            result += Math.abs(band1_data[i] - band2_data[i]); // TODO: Check if this is correct
-        }
-        return result;
-    }
 
 
     private double[][] updateMembershipValues(float[] position){
-        double[][] u = new double[this.dataLoader.getNumBands()][position.length];
+        double[][] u = new double[this.dataLoader.getNumberOfDataPoints()][position.length];
         int[] clusterCenters = new int[position.length];
         for (int i = 0; i < position.length; i++) {
             clusterCenters[i] = Math.round(position[i]);
         }
 
         int clusterCount = position.length;
-        for (int i = 0; i < dataLoader.getNumBands(); i++) {
+        for (int i = 0; i < dataLoader.getNumberOfDataPoints(); i++) {
+            double[] i_data = dataLoader.getDataPoint(i);
             for (int j = 0; j < clusterCount; j++) {
                 if (i == clusterCenters[j]){
                     u[i][j] = 1;
@@ -47,12 +39,14 @@ public class FCM extends AbstractFitnessFunction {
 
 
                 float sum = 0;
-                float upper = this.distance(i, clusterCenters[j]);
+                double[] j_data = dataLoader.getDataPoint(clusterCenters[j]);
+                double upper = distanceMetric.distance(i_data, j_data);
                 for (int k = 0; k < clusterCount; k++) {
-                    float lower = this.distance(i, clusterCenters[k]);
+                    double[] k_data = dataLoader.getDataPoint(clusterCenters[k]);
+                    double lower = distanceMetric.distance(i_data, k_data);
                     sum += Math.pow((upper/lower), 2/(this.m -1));
                 }
-                u[i][j] = 1/sum;
+                u[i][j] = 1/sum; // TODO: Cache this
             }
         }
         return u;
@@ -69,11 +63,13 @@ public class FCM extends AbstractFitnessFunction {
         double[][] u = updateMembershipValues(position);
 
         float J = 0f;
-        for (int i = 0; i < dataLoader.getNumBands(); i++) {
+        for (int i = 0; i < dataLoader.getNumberOfDataPoints(); i++) {
+            double[] i_data = dataLoader.getDataPoint(i);
             for (int j = 0; j < position.length; j++) {
                 float sum = 0;
                 for (int k = 0; k < position.length; k++) {
-                    sum += Math.pow(u[i][k], this.m) * this.distance(clusterCenters[k], i);
+                    double[] k_data = dataLoader.getDataPoint(clusterCenters[k]);
+                    sum += Math.pow(u[i][k], this.m) * distanceMetric.distance(k_data, i_data);
                 }
                 J += sum;
             }
