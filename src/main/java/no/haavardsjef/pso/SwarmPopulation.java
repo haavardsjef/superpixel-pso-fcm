@@ -7,6 +7,7 @@ import no.haavardsjef.fcm.FCM;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SwarmPopulation {
@@ -26,7 +27,7 @@ public class SwarmPopulation {
         this.numDimensions = numDimensions;
         this.particles = new ArrayList<>(numParticles);
         this.globalBestPosition = new float[numDimensions];
-        this.globalBestFitness = 0;
+        this.globalBestFitness = Float.POSITIVE_INFINITY;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
         this.fitnessFunction = new FCM(2.0f);
@@ -47,15 +48,17 @@ public class SwarmPopulation {
                 particle.updateVelocity(globalBestPosition, w, c1, c2);
                 particle.updatePosition();
                 if (particle.evaluate()) {
-                    if (particle.getFitness() > globalBestFitness) {
+                    if (particle.getFitness() < globalBestFitness) {
                         globalBestFitness = particle.getFitness();
                         globalBestPosition = particle.getPosition();
                     }
                 }
             }
+            System.out.println("Global best fitness after iteration " + i + ": " + globalBestFitness);
+            System.out.println("Global best position after iteration " + i + ": " + Arrays.toString(globalBestPosition));
         }
         System.out.println("Global best fitness: " + globalBestFitness);
-        System.out.println("Global best position: " + globalBestPosition);
+        System.out.println("Global best position: " + Arrays.toString(globalBestPosition));
     }
 
     public static void main(String[] args) {

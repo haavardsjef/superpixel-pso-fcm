@@ -19,9 +19,10 @@ public class Particle {
         this.numDimensions = numDimensions;
         this.position = new float[numDimensions];
         this.velocity = new float[numDimensions];
-        this.fitness = 0;
+        // Fitness starts as infinity, so that the first evaluation will always improve it.
+        this.fitness = Float.POSITIVE_INFINITY;
         this.bestPosition = new float[numDimensions];
-        this.bestFitness = 0;
+        this.bestFitness = Float.POSITIVE_INFINITY;
         // In our case, all dimensions have the same bounds.
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
@@ -62,7 +63,7 @@ public class Particle {
     public boolean evaluate() {
         // Evaluate the fitness of the particle, returns true if the particle has improved
         this.fitness = fitnessFunction.evaluate(this.position);
-        if (this.fitness > this.bestFitness) {
+        if (this.fitness < this.bestFitness) {
             this.bestFitness = this.fitness;
             this.bestPosition = this.position;
             return true;
