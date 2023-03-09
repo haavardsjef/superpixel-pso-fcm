@@ -43,4 +43,19 @@ public class DataLoader {
     public int getNumBands() {
         return data.length;
     }
+
+    public double[][] getSpecificBand(int band) {
+        return this.data[band];
+    }
+
+    public double[] getSpecificBandFlatted(int band) {
+        double[][] bandData = this.data[band];
+        double[] bandDataFlat = new double[bandData.length * bandData[0].length];
+        for (int i = 0; i < bandData.length; i++) {
+            for (int j = 0; j < bandData[0].length; j++) {
+                bandDataFlat[i * bandData[0].length + j] = bandData[i][j];
+            }
+        }
+        return bandDataFlat;
+    }
 }
