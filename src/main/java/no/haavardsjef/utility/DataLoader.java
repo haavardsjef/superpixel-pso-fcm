@@ -8,54 +8,44 @@ import us.hebi.matlab.mat.types.Sources;
 
 import java.io.IOException;
 
-public class DataLoader {
+public class DataLoader implements IDataLoader {
 
     private double[][][] data;
+    private double[][] dataFlatted; // Flattened pixel data
 
     public void loadData() {
+        String path = "indian_pines_corrected.mat";
         try {
-            Source source = Sources.openFile("indian_pines_corrected.mat");
+            Source source = Sources.openFile(path);
             Mat5File file = Mat5.newReader(source).readMat();
             Matrix matrix = file.getArray(0);
 
             double[][][] dataCube = new double[matrix.getDimensions()[2]][matrix.getDimensions()[0]][matrix
                     .getDimensions()[1]];
+            this.dataFlatted = new double[matrix.getDimensions()[2]][matrix.getDimensions()[0] * matrix.getDimensions()[1]];
+
             for (int b = 0; b < matrix.getDimensions()[2]; b++) {
                 for (int x = 0; x < matrix.getDimensions()[1]; x++) {
                     for (int y = 0; y < matrix.getDimensions()[0]; y++) {
                         dataCube[b][y][x] = matrix.getDouble(new int[] { y, x, b });
+                        dataFlatted[b][y * matrix.getDimensions()[1] + x] = matrix.getDouble(new int[] { y, x, b });
                     }
                 }
             }
 
             this.data = dataCube;
-            System.out.println("Successfully loaded data!");
+            System.out.println("Successfully loaded data from path: " + path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    public double[][][] getData() {
-        return data;
+    public double[] getDataPoint(int index) {
+        return dataFlatted[index];
     }
 
-    public int getNumBands() {
-        return data.length;
-    }
-
-    public double[][] getSpecificBand(int band) {
-        return this.data[band];
-    }
-
-    public double[] getSpecificBandFlatted(int band) {
-        double[][] bandData = this.data[band];
-        double[] bandDataFlat = new double[bandData.length * bandData[0].length];
-        for (int i = 0; i < bandData.length; i++) {
-            for (int j = 0; j < bandData[0].length; j++) {
-                bandDataFlat[i * bandData[0].length + j] = bandData[i][j];
-            }
-        }
-        return bandDataFlat;
+    public int getNumberOfDataPoints() {
+        return dataFlatted.length;
     }
 }

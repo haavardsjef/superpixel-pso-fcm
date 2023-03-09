@@ -4,6 +4,8 @@ import com.github.sh0nk.matplotlib4j.Plot;
 import com.github.sh0nk.matplotlib4j.PythonExecutionException;
 import no.haavardsjef.AbstractFitnessFunction;
 import no.haavardsjef.fcm.FCM;
+import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
+import no.haavardsjef.utility.DataLoader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ public class SwarmPopulation {
 
     public AbstractFitnessFunction fitnessFunction;
 
-    public SwarmPopulation(int numParticles, int numDimensions, int lowerBound, int upperBound) {
+    public SwarmPopulation(int numParticles, int numDimensions, int lowerBound, int upperBound, AbstractFitnessFunction fitnessFunction) {
         this.numParticles = numParticles;
         this.numDimensions = numDimensions;
         this.particles = new ArrayList<>(numParticles);
@@ -30,7 +32,7 @@ public class SwarmPopulation {
         this.globalBestFitness = Float.POSITIVE_INFINITY;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
-        this.fitnessFunction = new FCM(2.0f);
+        this.fitnessFunction = fitnessFunction;
 
 
 
@@ -61,16 +63,4 @@ public class SwarmPopulation {
         System.out.println("Global best position: " + Arrays.toString(globalBestPosition));
     }
 
-    public static void main(String[] args) {
-        SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, 0, 200);
-        // Start timer
-        long startTime = System.nanoTime();
-        swarmPopulation.optimize(100, 2f, 0.5f, 0.5f);
-        // Stop timer
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1000000;
-        System.out.println("Time: " + duration + "ms");
-
-
-    }
 }
