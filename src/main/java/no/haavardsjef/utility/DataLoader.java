@@ -14,7 +14,7 @@ public class DataLoader implements IDataLoader {
     private double[][] dataFlatted; // Flattened pixel data
 
     public void loadData() {
-        String path = "indian_pines_corrected.mat";
+        String path = "data/indian_pines_corrected.mat";
         try {
             Source source = Sources.openFile(path);
             Mat5File file = Mat5.newReader(source).readMat();
