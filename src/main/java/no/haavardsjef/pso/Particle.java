@@ -42,7 +42,7 @@ public class Particle {
 	public List<Integer> getDiscretePositionSorted() {
 		List<Integer> discretePosition = new ArrayList<>(this.numDimensions);
 		for (float f : this.position) {
-			discretePosition.add((int) f);
+			discretePosition.add(Math.round(f));
 		}
 		discretePosition.sort(Integer::compareTo);
 		return discretePosition;

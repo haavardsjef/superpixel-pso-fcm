@@ -62,7 +62,7 @@ public class FCM implements IObjectiveFunction {
 
 		// Check if the fitness has already been evaluated
 		if (this.fitnessCache.containsKey(clusterCenters)) {
-//			System.out.println("Fitness already evaluated for cluster centers: " + Arrays.toString(position) + " with fitness: " + fitnessCache.get(clusterCenters));
+			System.out.println("Fitness already evaluated for cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + fitnessCache.get(clusterCenters));
 			return fitnessCache.get(clusterCenters);
 		}
 
@@ -85,7 +85,7 @@ public class FCM implements IObjectiveFunction {
 
 		fitnessCache.put(clusterCenters, J);
 
-//		System.out.println("Evaluated solution with cluster centers: " + Arrays.toString(position) + " with fitness: " + J);
+		System.out.println("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + J);
 		return J;
 
 
