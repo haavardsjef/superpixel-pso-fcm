@@ -1,6 +1,7 @@
 package no.haavardsjef.pso;
 
 import no.haavardsjef.AbstractFitnessFunction;
+import no.haavardsjef.utility.Bounds;
 
 public class Particle {
 	private int numDimensions;
@@ -11,11 +12,10 @@ public class Particle {
 	private float fitness;
 	private float[] bestPosition;
 	private float bestFitness;
-	private final int lowerBound;
-	private final int upperBound;
+	private final Bounds bounds;
 	private final AbstractFitnessFunction fitnessFunction;
 
-	public Particle(int numDimensions, int lowerBound, int upperBound, AbstractFitnessFunction fitnessFunction) {
+	public Particle(int numDimensions, Bounds bounds, AbstractFitnessFunction fitnessFunction) {
 		this.numDimensions = numDimensions;
 		this.position = new float[numDimensions];
 		this.velocity = new float[numDimensions];
@@ -24,8 +24,7 @@ public class Particle {
 		this.bestPosition = new float[numDimensions];
 		this.bestFitness = Float.POSITIVE_INFINITY;
 		// In our case, all dimensions have the same bounds.
-		this.lowerBound = lowerBound;
-		this.upperBound = upperBound;
+		this.bounds = bounds;
 		this.fitnessFunction = fitnessFunction;
 	}
 
@@ -46,17 +45,17 @@ public class Particle {
 	public void updatePosition() {
 		for (int i = 0; i < numDimensions; i++) {
 			this.position[i] = this.position[i] + this.velocity[i];
-			if (this.position[i] < lowerBound) {
-				this.position[i] = lowerBound;
-			} else if (this.position[i] > upperBound) {
-				this.position[i] = upperBound;
+			if (this.position[i] < bounds.lower()) {
+				this.position[i] = bounds.lower();
+			} else if (this.position[i] > bounds.upper()) {
+				this.position[i] = bounds.upper();
 			}
 		}
 	}
 
 	public void initializeRandomly() {
 		for (int i = 0; i < numDimensions; i++) {
-			this.position[i] = (float) Math.random() * (upperBound - lowerBound) + lowerBound;
+			this.position[i] = (float) Math.random() * (bounds.upper() - bounds.lower()) + bounds.lower();
 			this.velocity[i] = (float) Math.random();
 		}
 	}

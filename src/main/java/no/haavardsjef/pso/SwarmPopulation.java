@@ -5,6 +5,7 @@ import com.github.sh0nk.matplotlib4j.PythonExecutionException;
 import no.haavardsjef.AbstractFitnessFunction;
 import no.haavardsjef.fcm.FCM;
 import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
+import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.utility.DataLoader;
 import no.haavardsjef.vizualisation.PlotLine;
 
@@ -20,24 +21,22 @@ public class SwarmPopulation {
 	public int numDimensions;
 	public float[] globalBestPosition;
 	public float globalBestFitness;
-	public int lowerBound;
-	public int upperBound;
+	private Bounds bounds;
 
 	public AbstractFitnessFunction fitnessFunction;
 
-	public SwarmPopulation(int numParticles, int numDimensions, int lowerBound, int upperBound, AbstractFitnessFunction fitnessFunction) {
+	public SwarmPopulation(int numParticles, int numDimensions, Bounds bounds, AbstractFitnessFunction fitnessFunction) {
 		this.numParticles = numParticles;
 		this.numDimensions = numDimensions;
 		this.particles = new ArrayList<>(numParticles);
 		this.globalBestPosition = new float[numDimensions];
 		this.globalBestFitness = Float.POSITIVE_INFINITY;
-		this.lowerBound = lowerBound;
-		this.upperBound = upperBound;
+		this.bounds = bounds;
 		this.fitnessFunction = fitnessFunction;
 
 
 		for (int i = 0; i < numParticles; i++) {
-			Particle particle = new Particle(numDimensions, lowerBound, upperBound, this.fitnessFunction);
+			Particle particle = new Particle(numDimensions, bounds, this.fitnessFunction);
 			particle.initializeRandomly();
 			particles.add(particle);
 		}
