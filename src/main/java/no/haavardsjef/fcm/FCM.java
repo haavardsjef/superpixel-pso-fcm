@@ -1,7 +1,7 @@
 package no.haavardsjef.fcm;
 
-import no.haavardsjef.AbstractFitnessFunction;
 import no.haavardsjef.fcm.distancemetrics.IDistance;
+import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.utility.IDataLoader;
 
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class FCM extends AbstractFitnessFunction {
+public class FCM implements IObjectiveFunction {
 
 	private IDataLoader dataLoader;
 	private float m;
@@ -24,13 +24,13 @@ public class FCM extends AbstractFitnessFunction {
 	}
 
 
-	private double[][] updateMembershipValues(float[] position) {
-		double[][] u = new double[this.dataLoader.getNumberOfDataPoints()][position.length];
-		int[] centers = new int[position.length];
-		for (int i = 0; i < position.length; i++) {
-			centers[i] = Math.round(position[i]);
+	private double[][] updateMembershipValues(List<Integer> clusterCenters) {
+		double[][] u = new double[this.dataLoader.getNumberOfDataPoints()][clusterCenters.size()];
+		int[] centers = new int[clusterCenters.size()];
+		for (int i = 0; i < clusterCenters.size(); i++) {
+			centers[i] = Math.round(clusterCenters.get(i));
 		}
-		int clusterCount = position.length;
+		int clusterCount = clusterCenters.size();
 		for (int i = 0; i < dataLoader.getNumberOfDataPoints(); i++) {
 			double[] i_data = dataLoader.getDataPoint(i);
 			for (int j = 0; j < clusterCount; j++) {
@@ -54,32 +54,27 @@ public class FCM extends AbstractFitnessFunction {
 		return u;
 	}
 
-	public float evaluate(float[] position) {
+	public float evaluate(List<Integer> candidateSolution) {
 		// Evaluate the fitness of the position by FCM
 
 		// Round the position to the nearest integer
-		List<Integer> clusterCenters = new ArrayList<>();
-		for (int i = 0; i < position.length; i++) {
-			clusterCenters.add(Math.round(position[i]));
-		}
-		// Sort the cluster centers
-		clusterCenters.sort(Integer::compareTo);
+		List<Integer> clusterCenters = candidateSolution.stream().map(Number::intValue).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
 		// Check if the fitness has already been evaluated
 		if (this.fitnessCache.containsKey(clusterCenters)) {
-			System.out.println("Fitness already evaluated for cluster centers: " + Arrays.toString(position) + " with fitness: " + fitnessCache.get(clusterCenters));
+//			System.out.println("Fitness already evaluated for cluster centers: " + Arrays.toString(position) + " with fitness: " + fitnessCache.get(clusterCenters));
 			return fitnessCache.get(clusterCenters);
 		}
 
 
-		double[][] u = updateMembershipValues(position);
+		double[][] u = updateMembershipValues(candidateSolution);
 
 		float J = 0f;
 		for (int i = 0; i < dataLoader.getNumberOfDataPoints(); i++) {
 			double[] i_data = dataLoader.getDataPoint(i);
-			for (int j = 0; j < position.length; j++) {
+			for (int j = 0; j < candidateSolution.size(); j++) {
 				float sum = 0;
-				for (int k = 0; k < position.length; k++) {
+				for (int k = 0; k < candidateSolution.size(); k++) {
 					double[] k_data = dataLoader.getDataPoint(clusterCenters.get(k));
 					sum += Math.pow(u[i][k], this.m) * distanceMetric.distance(k_data, i_data);
 				}
@@ -90,7 +85,7 @@ public class FCM extends AbstractFitnessFunction {
 
 		fitnessCache.put(clusterCenters, J);
 
-		System.out.println("Evaluated solution with cluster centers: " + Arrays.toString(position) + " with fitness: " + J);
+//		System.out.println("Evaluated solution with cluster centers: " + Arrays.toString(position) + " with fitness: " + J);
 		return J;
 
 

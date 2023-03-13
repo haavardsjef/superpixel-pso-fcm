@@ -1,7 +1,10 @@
 package no.haavardsjef.pso;
 
-import no.haavardsjef.AbstractFitnessFunction;
+import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.utility.Bounds;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Particle {
 	private int numDimensions;
@@ -13,9 +16,9 @@ public class Particle {
 	private float[] bestPosition;
 	private float bestFitness;
 	private final Bounds bounds;
-	private final AbstractFitnessFunction fitnessFunction;
+	private final IObjectiveFunction objectiveFunction;
 
-	public Particle(int numDimensions, Bounds bounds, AbstractFitnessFunction fitnessFunction) {
+	public Particle(int numDimensions, Bounds bounds, IObjectiveFunction objectiveFunction) {
 		this.numDimensions = numDimensions;
 		this.position = new float[numDimensions];
 		this.velocity = new float[numDimensions];
@@ -25,7 +28,7 @@ public class Particle {
 		this.bestFitness = Float.POSITIVE_INFINITY;
 		// In our case, all dimensions have the same bounds.
 		this.bounds = bounds;
-		this.fitnessFunction = fitnessFunction;
+		this.objectiveFunction = objectiveFunction;
 	}
 
 	public float[] getPosition() {
@@ -34,6 +37,16 @@ public class Particle {
 
 	public float getFitness() {
 		return fitness;
+	}
+
+	public List<Integer> getDiscretePositionSorted() {
+		List<Integer> discretePosition = new ArrayList<>(this.numDimensions);
+		for (float f : this.position) {
+			discretePosition.add((int) f);
+		}
+		discretePosition.sort(Integer::compareTo);
+		return discretePosition;
+
 	}
 
 	public void updateVelocity(float[] global_best_position, float w, float c1, float c2) {
@@ -62,7 +75,7 @@ public class Particle {
 
 	public float evaluate() {
 		// Evaluate the fitness of the particle, returns true if the particle has improved
-		this.fitness = fitnessFunction.evaluate(this.position);
+		this.fitness = objectiveFunction.evaluate(this.getDiscretePositionSorted());
 		if (this.fitness < this.bestFitness) {
 			this.bestFitness = this.fitness;
 			this.bestPosition = this.position;

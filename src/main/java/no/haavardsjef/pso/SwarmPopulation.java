@@ -1,17 +1,12 @@
 package no.haavardsjef.pso;
 
-import com.github.sh0nk.matplotlib4j.Plot;
-import com.github.sh0nk.matplotlib4j.PythonExecutionException;
-import no.haavardsjef.AbstractFitnessFunction;
-import no.haavardsjef.fcm.FCM;
-import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
+import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.vizualisation.PlotLine;
 import no.haavardsjef.vizualisation.Visualizations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class SwarmPopulation {
 
@@ -22,20 +17,20 @@ public class SwarmPopulation {
 	public float globalBestFitness;
 	private Bounds bounds;
 
-	public AbstractFitnessFunction fitnessFunction;
+	public IObjectiveFunction objectiveFunction;
 
-	public SwarmPopulation(int numParticles, int numDimensions, Bounds bounds, AbstractFitnessFunction fitnessFunction) {
+	public SwarmPopulation(int numParticles, int numDimensions, Bounds bounds, IObjectiveFunction objectiveFunction) {
 		this.numParticles = numParticles;
 		this.numDimensions = numDimensions;
 		this.particles = new ArrayList<>(numParticles);
 		this.globalBestPosition = new float[numDimensions];
 		this.globalBestFitness = Float.POSITIVE_INFINITY;
 		this.bounds = bounds;
-		this.fitnessFunction = fitnessFunction;
+		this.objectiveFunction = objectiveFunction;
 
 
 		for (int i = 0; i < numParticles; i++) {
-			Particle particle = new Particle(numDimensions, bounds, this.fitnessFunction);
+			Particle particle = new Particle(numDimensions, bounds, this.objectiveFunction);
 			particle.initializeRandomly();
 			particles.add(particle);
 		}
