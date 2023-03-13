@@ -6,9 +6,8 @@ import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.utility.DataLoader;
-import no.haavardsjef.utility.DataLoaderCSV;
 
-public class BandSelectionExperiment {
+public class BandSelectionExperiment implements IExperiment {
 
 
 	public void runExperiment() {

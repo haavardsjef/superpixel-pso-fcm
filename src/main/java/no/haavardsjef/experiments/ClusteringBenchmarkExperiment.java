@@ -12,7 +12,7 @@ import no.haavardsjef.utility.DataLoader;
 import java.util.List;
 import java.util.ArrayList;
 
-public class ClusteringBenchmarkExperiment {
+public class ClusteringBenchmarkExperiment implements IExperiment {
 
 	public void runExperiment() {
 
