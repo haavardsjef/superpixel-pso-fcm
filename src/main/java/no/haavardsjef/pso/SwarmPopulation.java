@@ -55,9 +55,8 @@ public class SwarmPopulation {
 		// Plot swarm using matplotlib4j
 		Plot plt = Plot.create();
 		plt.plot().add(x, y, "o");
-		// Make both x and y go from 0 to 10
-		plt.xlim(0, 200);
-		plt.ylim(0, 200);
+		plt.xlim(this.lowerBound, this.upperBound);
+		plt.ylim(this.lowerBound, this.upperBound);
 		plt.title("Iteration " + iteration);
 //            plt.show();
 		plt.savefig("C:/Users/Haavard/github/superpixel-pso-fcm/viz/" + iteration + ".png");
@@ -72,7 +71,7 @@ public class SwarmPopulation {
 
 	}
 
-	public void optimize(int numIterations, float w, float c1, float c2, boolean plot) {
+	public float[] optimize(int numIterations, float w, float c1, float c2, boolean plot) {
 		long startTime = System.nanoTime();
 		double[] avgFitness = new double[numIterations];
 		for (int i = 0; i < numIterations; i++) {
@@ -110,5 +109,6 @@ public class SwarmPopulation {
 
 		System.out.println("Global best fitness: " + globalBestFitness);
 		System.out.println("Global best position: " + Arrays.toString(globalBestPosition));
+		return globalBestPosition;
 	}
 }
