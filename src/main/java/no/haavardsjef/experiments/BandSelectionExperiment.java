@@ -13,7 +13,7 @@ public class BandSelectionExperiment {
 
 	public void runExperiment() {
 		AbstractFitnessFunction fitnessFunction = new FCM(2.0f, new EuclideanDistance(), new DataLoader());
-		Bounds bounds = new Bounds(0, 199)
+		Bounds bounds = new Bounds(0, 199);
 		SwarmPopulation swarmPopulation = new SwarmPopulation(100, 2, bounds, fitnessFunction);
 		float[] solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
 	}

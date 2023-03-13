@@ -17,7 +17,7 @@ public class ClusteringBenchmarkExperiment {
 	public void runExperiment() {
 
 		AbstractFitnessFunction fitnessFunction = new FCM(2.0f, new EuclideanDistance(), new DataLoaderCSV());
-		Bounds bounds = new Bounds(0, 999)
+		Bounds bounds = new Bounds(0, 999);
 		SwarmPopulation swarmPopulation = new SwarmPopulation(1000, 2, bounds, fitnessFunction);
 		float[] solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
 		List<Integer> clusterCenterIndexes = new ArrayList<>();
