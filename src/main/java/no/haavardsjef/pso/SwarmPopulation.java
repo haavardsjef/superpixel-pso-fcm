@@ -18,6 +18,7 @@ public class SwarmPopulation {
 	private Bounds bounds;
 
 	public IObjectiveFunction objectiveFunction;
+	private Particle solution;
 
 	public SwarmPopulation(int numParticles, int numDimensions, Bounds bounds, IObjectiveFunction objectiveFunction) {
 		this.numParticles = numParticles;
@@ -36,7 +37,7 @@ public class SwarmPopulation {
 		}
 	}
 
-	public float[] optimize(int numIterations, float w, float c1, float c2, boolean plot) {
+	public Particle optimize(int numIterations, float w, float c1, float c2, boolean plot) {
 		long startTime = System.nanoTime();
 		double[] avgFitness = new double[numIterations];
 		for (int i = 0; i < numIterations; i++) {
@@ -54,6 +55,7 @@ public class SwarmPopulation {
 				if (p_fitness < globalBestFitness) {
 					globalBestFitness = particle.getFitness();
 					globalBestPosition = particle.getPosition();
+					this.solution = particle;
 				}
 				totalFitness += p_fitness;
 			}
@@ -74,6 +76,6 @@ public class SwarmPopulation {
 
 		System.out.println("Global best fitness: " + globalBestFitness);
 		System.out.println("Global best position: " + Arrays.toString(globalBestPosition));
-		return globalBestPosition;
+		return solution;
 	}
 }

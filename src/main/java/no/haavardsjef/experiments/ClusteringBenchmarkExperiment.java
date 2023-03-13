@@ -3,6 +3,7 @@ package no.haavardsjef.experiments;
 import no.haavardsjef.fcm.FCM;
 import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
+import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.utility.DataLoaderCSV;
@@ -18,13 +19,10 @@ public class ClusteringBenchmarkExperiment implements IExperiment {
 		IObjectiveFunction objectiveFunction = new FCM(2.0f, new EuclideanDistance(), new DataLoaderCSV());
 		Bounds bounds = new Bounds(0, 999);
 		SwarmPopulation swarmPopulation = new SwarmPopulation(1000, 2, bounds, objectiveFunction);
-		float[] solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
-		List<Integer> clusterCenterIndexes = new ArrayList<>();
+		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
 
-		for (int i = 0; i < solution.length; i++) {
-			// Round to nearest integer
-			clusterCenterIndexes.add(Math.round(solution[i]));
-		}
+
+		List<Integer> clusterCenterIndexes = solution.getDiscretePositionSorted();
 
 		// Plot the clusters
 		PlotScatter plotScatter = new PlotScatter();
