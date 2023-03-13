@@ -6,10 +6,9 @@ import no.haavardsjef.AbstractFitnessFunction;
 import no.haavardsjef.fcm.FCM;
 import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
 import no.haavardsjef.utility.Bounds;
-import no.haavardsjef.utility.DataLoader;
 import no.haavardsjef.vizualisation.PlotLine;
+import no.haavardsjef.vizualisation.Visualizations;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,41 +41,13 @@ public class SwarmPopulation {
 		}
 	}
 
-	private void plot(int iteration) {
-		List<Double> x = new ArrayList<>();
-		List<Double> y = new ArrayList<>();
-
-		for (Particle particle : this.particles) {
-			x.add((double) particle.getPosition()[0]);
-			y.add((double) particle.getPosition()[1]);
-		}
-
-		// Plot swarm using matplotlib4j
-		Plot plt = Plot.create();
-		plt.plot().add(x, y, "o");
-		plt.xlim(this.lowerBound, this.upperBound);
-		plt.ylim(this.lowerBound, this.upperBound);
-		plt.title("Iteration " + iteration);
-//            plt.show();
-		plt.savefig("C:/Users/Haavard/github/superpixel-pso-fcm/viz/" + iteration + ".png");
-		try {
-			plt.executeSilently();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (PythonExecutionException e) {
-			throw new RuntimeException(e);
-		}
-		System.out.println("Saved plot " + iteration);
-
-	}
-
 	public float[] optimize(int numIterations, float w, float c1, float c2, boolean plot) {
 		long startTime = System.nanoTime();
 		double[] avgFitness = new double[numIterations];
 		for (int i = 0; i < numIterations; i++) {
 			System.out.println("Iteration: " + i);
 			if (plot && this.numDimensions == 2) {
-				plot(i);
+				Visualizations.plotSwarm(this.particles, i, this.bounds);
 			}
 			float totalFitness = 0;
 			for (Particle particle : particles) {
@@ -96,7 +67,7 @@ public class SwarmPopulation {
 			System.out.println("Global best position after iteration " + i + ": " + Arrays.toString(globalBestPosition));
 		}
 		if (plot && this.numDimensions == 2) {
-			plot(numIterations);
+			Visualizations.plotSwarm(this.particles, numIterations, this.bounds);
 		}
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime) / 1000000000;
