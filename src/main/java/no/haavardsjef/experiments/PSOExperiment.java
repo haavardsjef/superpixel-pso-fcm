@@ -1,13 +1,10 @@
 package no.haavardsjef.experiments;
 
-import no.haavardsjef.fcm.FCM;
-import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.objectivefunctions.SquaredObjectiveFunction;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
-import no.haavardsjef.utility.DataLoader;
 
 public class PSOExperiment implements IExperiment {
 

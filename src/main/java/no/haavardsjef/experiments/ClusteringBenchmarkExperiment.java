@@ -10,7 +10,6 @@ import no.haavardsjef.utility.DataLoaderCSV;
 import no.haavardsjef.vizualisation.PlotScatter;
 
 import java.util.List;
-import java.util.ArrayList;
 
 public class ClusteringBenchmarkExperiment implements IExperiment {
 

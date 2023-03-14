@@ -5,7 +5,6 @@ import com.github.sh0nk.matplotlib4j.PythonExecutionException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class PlotScatter {
