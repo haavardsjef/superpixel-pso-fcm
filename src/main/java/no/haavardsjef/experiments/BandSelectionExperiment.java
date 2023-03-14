@@ -1,5 +1,6 @@
 package no.haavardsjef.experiments;
 
+import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.fcm.FCM;
 import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
@@ -25,6 +26,9 @@ public class BandSelectionExperiment implements IExperiment {
 
 		List<Integer> selectedBands = solution.getDiscretePositionSorted();
 		System.out.println("Selected bands:" + selectedBands);
+
+		SVMClassifier svmClassifier = new SVMClassifier(new DataLoader());
+		svmClassifier.evaluate(selectedBands);
 
 
 	}
