@@ -8,6 +8,7 @@ import us.hebi.matlab.mat.types.Sources;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -51,6 +52,9 @@ public class DataLoader implements IDataLoader {
 		return dataFlatted[index];
 	}
 
+	/**
+	 * @return The number of datapoints, in this case the number of bands available in the HSI.
+	 */
 	public int getNumberOfDataPoints() {
 		return dataFlatted.length;
 	}
@@ -80,6 +84,25 @@ public class DataLoader implements IDataLoader {
 
 	public int[] getGroundTruthFlattened() {
 		return groundTruthFlattened;
+	}
+
+	/**
+	 *  Returns an array of arrays that contains the data values for selected bands, for all pixels.
+	 *  The index in the outer array corresponds to which pixel in the flattened image.
+	 *  The entries in the inner array contain to the data value of the corresponding band from the bands input parameter.
+	 *  Example: getPixelValuesForBands(Arrays.asList([10, 20]) - returns an array with as many elements as there are pixels,
+	 *  each element is an array [x1, x2] where x1 is the value of band 10 in that pixel, and x2 is the value of band 20 in that pixel.
+	 * @param bands - The selected bands that we should use
+	 * @return - Array containing an array with the band values of the selected bands for the pixel of ith in
+	 */
+	public double[][] getPixelValuesForBands(List<Integer> bands){
+		double[][] pixelValuesForBands = new double[dataFlatted[0].length][bands.size()];
+		for (int i = 0; i < dataFlatted[0].length; i++) {
+			for (int j = 0; j < bands.size(); j++) {
+				pixelValuesForBands[i][j] = dataFlatted[bands.get(j)][i];
+			}
+		}
+		return pixelValuesForBands;
 	}
 
 }
