@@ -45,6 +45,11 @@
             <artifactId>libsvm</artifactId>
             <version>3.30</version>
         </dependency>
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-native</artifactId>
+            <version>1.0.0-M2.1</version>
+        </dependency>
     </dependencies>
 
 </project>
