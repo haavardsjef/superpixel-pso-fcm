@@ -48,6 +48,17 @@ public class DataLoader implements IDataLoader {
 	}
 
 
+	/**
+	 * @return The flattened band data, the first index is the band, the second index is the flattened pixel index.
+	 */
+	public double[][] getDataFlatted() {
+		return dataFlatted;
+	}
+
+	/**
+	 * @param index - the index of the datapoint
+	 * @return The pixel values for a single band
+	 */
 	public double[] getDataPoint(int index) {
 		return dataFlatted[index];
 	}
