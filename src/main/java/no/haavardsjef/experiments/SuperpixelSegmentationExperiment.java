@@ -5,17 +5,16 @@ import no.haavardsjef.utility.DataLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 public class SuperpixelSegmentationExperiment implements IExperiment {
+
     @Override
     public void runExperiment() {
 
         DataLoader dl = new DataLoader();
         dl.loadData();
         double[][] hsiDataFlattened = dl.getDataFlatted();
-
-        PCA_Implementation pca = new PCA_Implementation();
-        INDArray principleComponents = pca.performPCA(hsiDataFlattened);
+            
+        INDArray principleComponents = PCA_Implementation.performPCA(hsiDataFlattened);
         System.out.println(principleComponents);
-
     }
 
     public static void main(String[] args) {
