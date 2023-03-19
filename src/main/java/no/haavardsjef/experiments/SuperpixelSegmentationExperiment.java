@@ -13,7 +13,7 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
         dl.loadData();
         double[][] hsiDataFlattened = dl.getDataFlatted();
             
-        INDArray principleComponents = PCA_Implementation.performPCA(hsiDataFlattened);
+		INDArray principleComponents = PCA_Implementation.performPCA(hsiDataFlattened, true);
         System.out.println(principleComponents);
     }
 
