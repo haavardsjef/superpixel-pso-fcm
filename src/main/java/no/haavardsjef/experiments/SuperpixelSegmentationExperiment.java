@@ -5,6 +5,7 @@ import boofcv.struct.image.Planar;
 import no.haavardsjef.superpixelsegmentation.PCA_Implementation;
 import no.haavardsjef.superpixelsegmentation.SuperpixelSegmentation;
 import no.haavardsjef.utility.DataLoader;
+import no.haavardsjef.utility.FileWriter;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 public class SuperpixelSegmentationExperiment implements IExperiment {
@@ -19,7 +20,6 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 		INDArray principleComponents = PCA_Implementation.performPCA(hsiDataFlattened, true);
 		System.out.println(principleComponents);
 
-		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
 
 		// Create Planar image from principle components
 		Planar<GrayF32> image = new Planar<GrayF32>(GrayF32.class, 145, 145, 3); // TODO: Automatic width and height
@@ -39,6 +39,9 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 
 		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
 		int[] superpixelMap = superpixelSegmentation.segment(image);
+
+		// Save superpixel map to file
+		FileWriter.csvWrite(superpixelMap, "segmentation/map2.csv");
 
 	}
 
