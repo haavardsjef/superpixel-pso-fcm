@@ -35,6 +35,11 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 			image.getBand(2).set(col, row, (float) principleComponents.getDouble(i, 2));
 		}
 		System.out.println("Planar image created");
+
+
+		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
+		int[] superpixelMap = superpixelSegmentation.segment(image);
+
 	}
 
 	public static void main(String[] args) {
