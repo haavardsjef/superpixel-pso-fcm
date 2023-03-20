@@ -20,7 +20,21 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 		INDArray principleComponents = PCA_Implementation.performPCA(hsiDataFlattened, true);
 		System.out.println(principleComponents);
 
+		// For each principle component
+		for (int i = 0; i < principleComponents.columns(); i++) {
+			// Get min value
+			double min = principleComponents.getColumns(i).minNumber().doubleValue();
+			// Subtract min for each value to shift to positive
+			principleComponents.putColumn(i, principleComponents.getColumns(i).sub(min));
+			// Get max value
+			double max = principleComponents.getColumns(i).maxNumber().doubleValue();
+			// Multiply each value by 255/max to scale to 0-255
+			principleComponents.putColumn(i, principleComponents.getColumns(i).mul(255 / max));
+		}
 
+
+//		NormalizerMinMaxScaler normalizer = new NormalizerMinMaxScaler(0.0, 255.0);
+//		normalizer.transform(principleComponents);
 		// Create Planar image from principle components
 		Planar<GrayF32> image = new Planar<GrayF32>(GrayF32.class, 145, 145, 3); // TODO: Automatic width and height
 
