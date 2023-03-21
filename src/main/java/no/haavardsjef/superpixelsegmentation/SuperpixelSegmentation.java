@@ -86,7 +86,7 @@ public class SuperpixelSegmentation {
 
 	public int[] segment(Planar<GrayF32> image) {
 		ImageType<Planar<GrayF32>> imageType = ImageType.pl(3, GrayF32.class);
-		ImageSuperpixels algorithm = FactoryImageSegmentation.slic(new ConfigSlic(100), imageType);
+		ImageSuperpixels algorithm = FactoryImageSegmentation.slic(new ConfigSlic(100, 200f), imageType);
 		return performSegmentation(algorithm, image);
 	}
 

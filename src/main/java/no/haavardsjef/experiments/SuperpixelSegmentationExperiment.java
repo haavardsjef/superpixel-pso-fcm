@@ -33,8 +33,6 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 		}
 
 
-//		NormalizerMinMaxScaler normalizer = new NormalizerMinMaxScaler(0.0, 255.0);
-//		normalizer.transform(principleComponents);
 		// Create Planar image from principle components
 		Planar<GrayF32> image = new Planar<GrayF32>(GrayF32.class, 145, 145, 3); // TODO: Automatic width and height
 
@@ -55,7 +53,7 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 		int[] superpixelMap = superpixelSegmentation.segment(image);
 
 		// Save superpixel map to file
-		FileWriter.csvWrite(superpixelMap, "segmentation/map2.csv");
+		FileWriter.csvWrite(superpixelMap, "segmentation/map.csv");
 
 	}
 
