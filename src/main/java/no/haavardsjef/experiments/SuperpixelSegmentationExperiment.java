@@ -50,7 +50,7 @@ public class SuperpixelSegmentationExperiment implements IExperiment {
 
 
 		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
-		int[] superpixelMap = superpixelSegmentation.segment(image);
+		int[] superpixelMap = superpixelSegmentation.segment(image, false);
 
 		// Save superpixel map to file
 		FileWriter.csvWrite(superpixelMap, "segmentation/map.csv");

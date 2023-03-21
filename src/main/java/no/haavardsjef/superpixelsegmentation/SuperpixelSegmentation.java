@@ -16,15 +16,17 @@ import boofcv.io.image.ConvertBufferedImage;
 import boofcv.io.image.UtilImageIO;
 import boofcv.struct.feature.ColorQueue_F32;
 import boofcv.struct.image.*;
+import lombok.extern.log4j.Log4j2;
 import org.ddogleg.struct.DogArray_I32;
 
 import java.awt.image.BufferedImage;
 
+@Log4j2
 public class SuperpixelSegmentation {
 	/**
 	 * Segments the image
 	 */
-	public static <T extends ImageBase<T>> int[] performSegmentation(ImageSuperpixels<T> alg, T color) {
+	public static <T extends ImageBase<T>> int[] performSegmentation(ImageSuperpixels<T> alg, T color, boolean viz) {
 		// Segmentation often works better after blurring the image. Reduces high frequency image components which
 		// can cause over segmentation
 		GBlurImageOps.gaussian(color, color, 0.5, -1, null); //TODO: Explore options here
@@ -37,11 +39,13 @@ public class SuperpixelSegmentation {
 		alg.segment(color, pixelToSegment);
 
 		// Displays the results
-		visualize(pixelToSegment, color, alg.getTotalSuperpixels());
+		if (viz) {
+			visualize(pixelToSegment, color, alg.getTotalSuperpixels());
+		}
 
 		int[] flatSuperpixelMap = pixelToSegment.data;
 		int numberOfSuperpixels = alg.getTotalSuperpixels();
-		System.out.println("Segmented image into " + numberOfSuperpixels + " superpixels");
+		log.info("Segmented image into " + numberOfSuperpixels + " superpixels");
 		return flatSuperpixelMap;
 
 	}
@@ -71,23 +75,25 @@ public class SuperpixelSegmentation {
 		// Draw each region by assigning it a random color
 		BufferedImage outSegments = VisualizeRegions.regions(pixelToRegion, numSegments, null);
 
-		// Make region edges appear red
-		var outBorder = new BufferedImage(color.width, color.height, BufferedImage.TYPE_INT_RGB);
-		ConvertBufferedImage.convertTo(color, outBorder, true);
-		VisualizeRegions.regionBorders(pixelToRegion, 0xFF0000, outBorder);
 
 		// Show the visualization results
 		var gui = new ListDisplayPanel();
 		gui.addImage(outColor, "Color of Segments");
-		gui.addImage(outBorder, "Region Borders");
+		if (color.getImageType().getNumBands() == 3) {
+			var outBorder = new BufferedImage(color.width, color.height, BufferedImage.TYPE_INT_RGB);
+			ConvertBufferedImage.convertTo(color, outBorder, true);
+			VisualizeRegions.regionBorders(pixelToRegion, 0xFF0000, outBorder);
+			gui.addImage(outBorder, "Region Borders");
+		}
 		gui.addImage(outSegments, "Regions");
 		ShowImages.showWindow(gui, "Superpixels", true);
 	}
 
-	public int[] segment(Planar<GrayF32> image) {
-		ImageType<Planar<GrayF32>> imageType = ImageType.pl(3, GrayF32.class);
+	public int[] segment(Planar<GrayF32> image, boolean visualize) {
+		int numBands = image.getNumBands();
+		ImageType<Planar<GrayF32>> imageType = ImageType.pl(numBands, GrayF32.class);
 		ImageSuperpixels algorithm = FactoryImageSegmentation.slic(new ConfigSlic(100, 200f), imageType);
-		return performSegmentation(algorithm, image);
+		return performSegmentation(algorithm, image, visualize);
 	}
 
 
@@ -113,6 +119,6 @@ public class SuperpixelSegmentation {
 		ConvertBufferedImage.convertFrom(image, color, true);
 
 		// Segment the image
-		performSegmentation(alg, color);
+		performSegmentation(alg, color, true);
 	}
 }
