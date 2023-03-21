@@ -56,6 +56,23 @@ public class SuperpixelAnalysis {
 	}
 
 	/**
+	 * Calculate the mean value in a given superpixel for a given band index.
+	 * This method assumes that the class has already been supplied with the correct HSI-data.
+	 * If you have the band data easily available, use the method meanValueInSuperpixelGivenData instead.
+	 *
+	 * @param superpixelIndex - The index of the superpixel we wish to calculate the mean of.
+	 * @param bandIndex       - The index of the band we wish to calculate the mean of across that superpixel.
+	 * @return - The mean value for the given superpixel and band.
+	 */
+	public double meanValueInSuperpixelUsingBandIndex(int superpixelIndex, int bandIndex) {
+		if (this.hsiDataFlattened == null) {
+			throw new IllegalArgumentException("The class has not been supplied with HSI-data");
+		}
+		double[] bandData = hsiDataFlattened[bandIndex];
+		return meanValueInSuperpixel(superpixelIndex, bandData);
+	}
+
+	/**
 	 * Calculates the mean value in all superpixels from the given band data.
 	 *
 	 * @param bandData - The flattened pixel values from a single band.
@@ -71,3 +88,23 @@ public class SuperpixelAnalysis {
 		}
 		return meanValues;
 	}
+
+
+	/**
+	 * Calculates the mean value in all superpixels from the band data stored in the class.
+	 * This method assumes that the class has already been supplied with the correct HSI-data.
+	 * If you have the band data easily available, use the method meanValueInAllSuperpixelsGivenData instead.
+	 *
+	 * @param bandIndex - The index of the band we wish to calculate the mean of across all superpixels.
+	 * @return - An array containing the mean value for each superpixel across that band.
+	 */
+	public double[] meanValueInAllSuperpixelsUsingBandIndex(int bandIndex) {
+		if (this.hsiDataFlattened == null) {
+			throw new IllegalArgumentException("The class has not been supplied with HSI-data");
+		}
+		double[] band = hsiDataFlattened[bandIndex];
+		return this.meanValueInAllSuperpixels(band);
+	}
+
+
+}
