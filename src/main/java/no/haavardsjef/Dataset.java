@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.superpixelsegmentation.SuperpixelContainer;
 import no.haavardsjef.utility.HyperspectralDataLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.IOException;
 
@@ -44,13 +45,32 @@ public class Dataset {
 
 	public void setupSuperpixelContainer() {
 		this.superpixelContainer = new SuperpixelContainer(this.data);
-		this.superpixelContainer.generateSuperpixelMap();
+	}
+
+	public double euclideanDistance(int bandIndex1, int bandIndex2) {
+		INDArray bandData1 = this.data.get(NDArrayIndex.point(bandIndex1), NDArrayIndex.all(), NDArrayIndex.all());
+		INDArray bandData2 = this.data.get(NDArrayIndex.point(bandIndex2), NDArrayIndex.all(), NDArrayIndex.all());
+
+		return bandData1.distance2(bandData2); // Returns the euclidean distance.
+	}
+
+	public double euclideanDistanceSP(int bandIndex1, int bandIndex2) {
+		if (this.superpixelContainer == null) {
+			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		}
+		INDArray bandData1 = this.superpixelContainer.getSuperpixelMeans(bandIndex1);
+		INDArray bandData2 = this.superpixelContainer.getSuperpixelMeans(bandIndex2);
+
+		return bandData1.distance2(bandData2); // Returns the euclidean distance.
 	}
 
 
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset("data/indian_pines", DatasetName.indian_pines);
 		ds.setupSuperpixelContainer();
-		ds.superpixelContainer.calculateSuperpixelMeans();
+		double dist = ds.euclideanDistance(0, 1);
+		double spDist = ds.euclideanDistanceSP(0, 1);
+
+
 	}
 }
