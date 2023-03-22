@@ -12,6 +12,10 @@ import org.nd4j.linalg.indexing.conditions.Conditions;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+/**
+ * A container for superpixel data.
+ * Holds the superpixel map and provides useful methods for working with superpixels.
+ */
 @Log4j2
 public class SuperpixelContainer {
 
@@ -22,10 +26,15 @@ public class SuperpixelContainer {
 
 	public SuperpixelContainer(INDArray data) {
 		this.data = data;
+		this.generateSuperpixelMap();
 	}
 
 
-	public void generateSuperpixelMap() {
+	/**
+	 * Converts data into planar image, and then uses boofCV to generate a superpixel map.
+	 */
+	private void generateSuperpixelMap() {
+		log.info("Generating superpixel map");
 		int numBands = (int) this.data.shape()[0];
 		int imageWidth = (int) this.data.shape()[2];
 		int imageHeight = (int) this.data.shape()[1];
@@ -44,16 +53,18 @@ public class SuperpixelContainer {
 		log.info("Planar image created");
 		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
 		int[] superpixelMap = superpixelSegmentation.segment(image, true);
-		log.info("Superpixel map created");
 		this.superpixelMap = Nd4j.createFromArray(superpixelMap).reshape(imageHeight, imageWidth);
 		this.numSuperpixels = Arrays.stream(superpixelMap).max().getAsInt() + 1;
-		superpixelMeans = Nd4j.zeros(this.numSuperpixels, numBands);
-		calculateSuperpixelMeans();
+		log.info("Superpixel map created");
+		this.calculateSuperpixelMeans();
 	}
 
 
-	public void calculateSuperpixelMeans() {
-		// TODO: Precalculate the mean for every band in every superpixel
+	/**
+	 * Uses to superpixel map to calculate the mean value of each superpixel for each band,
+	 * and stores the result in superpixelMeans.
+	 */
+	private void calculateSuperpixelMeans() {
 		log.info("Calculating superpixel means");
 		// Start timer
 		long startTime = System.currentTimeMillis();
@@ -65,7 +76,12 @@ public class SuperpixelContainer {
 
 	}
 
-	public void calculateMean(int bandIndex) {
+	/**
+	 * Calculates the mean value for every superpixel in the given band.
+	 *
+	 * @param bandIndex The index of the band to calculate the mean for.
+	 */
+	private void calculateMean(int bandIndex) {
 		INDArray bandData = this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
 		IntStream.range(0, this.numSuperpixels).forEach(superpixelIndex -> {
 			INDArray result = bandData.mul(this.superpixelMap.eq(superpixelIndex));
@@ -80,6 +96,16 @@ public class SuperpixelContainer {
 			this.superpixelMeans.putScalar(bandIndex, superpixelIndex, mean);
 
 		});
+	}
+
+	/**
+	 * Get the mean value for each superpixel in a given band.
+	 *
+	 * @param bandIndex The index of the band to get the superpixel means for.
+	 * @return An INDArray of shape [numSuperpixels] containing the mean value for each superpixel.
+	 */
+	public INDArray getSuperpixelMeans(int bandIndex) {
+		return this.superpixelMeans.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all());
 	}
 
 }

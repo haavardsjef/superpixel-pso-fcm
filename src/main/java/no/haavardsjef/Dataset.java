@@ -8,6 +8,10 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.IOException;
 
+/**
+ * A container for a dataset. Contains the data, groundtruth, and other metadata.
+ * Provides useful methods for working with the dataset.
+ */
 @Log4j2
 public class Dataset {
 
@@ -29,6 +33,11 @@ public class Dataset {
 	}
 
 
+	/**
+	 * Loads the dataset from the given path.
+	 *
+	 * @throws IOException if the dataset cannot be loaded
+	 */
 	private void load() throws IOException {
 		String correctedDataPath = this.datasetPath + "/" + this.datasetName + "_corrected.mat";
 		String groundTruthPath = this.datasetPath + "/" + this.datasetName + "_gt.mat";
@@ -43,10 +52,20 @@ public class Dataset {
 				this.numBands, this.imageWidth, this.imageHeight, this.numPixels, this.numClasses);
 	}
 
+	/**
+	 * Initializes the superpixel container. Must be called before using any superpixel related methods.
+	 */
 	public void setupSuperpixelContainer() {
 		this.superpixelContainer = new SuperpixelContainer(this.data);
 	}
 
+	/**
+	 * Calculates the euclidean distance between two bands, using all pixels.
+	 *
+	 * @param bandIndex1 The index of the first band.
+	 * @param bandIndex2 The index of the second band.
+	 * @return The euclidean distance between the two bands.
+	 */
 	public double euclideanDistance(int bandIndex1, int bandIndex2) {
 		INDArray bandData1 = this.data.get(NDArrayIndex.point(bandIndex1), NDArrayIndex.all(), NDArrayIndex.all());
 		INDArray bandData2 = this.data.get(NDArrayIndex.point(bandIndex2), NDArrayIndex.all(), NDArrayIndex.all());
@@ -54,6 +73,13 @@ public class Dataset {
 		return bandData1.distance2(bandData2); // Returns the euclidean distance.
 	}
 
+	/**
+	 * Calculates the euclidean distance between two bands, using mean of superpixels.
+	 *
+	 * @param bandIndex1 The index of the first band.
+	 * @param bandIndex2 The index of the second band.
+	 * @return The euclidean distance between the two bands.
+	 */
 	public double euclideanDistanceSP(int bandIndex1, int bandIndex2) {
 		if (this.superpixelContainer == null) {
 			throw new IllegalStateException("SuperpixelContainer is not initialized.");
