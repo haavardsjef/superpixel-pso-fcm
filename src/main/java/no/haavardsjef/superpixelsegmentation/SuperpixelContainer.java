@@ -5,15 +5,19 @@ import boofcv.struct.image.Planar;
 import lombok.extern.log4j.Log4j2;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.BooleanIndexing;
+import org.nd4j.linalg.indexing.NDArrayIndex;
+import org.nd4j.linalg.indexing.conditions.Conditions;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 @Log4j2
 public class SuperpixelContainer {
 
 	private INDArray superpixelMap;
 	private INDArray data;
-	private INDArray superpixelMeans; // Shape: [numSuperpixels, numBands]
+	private INDArray superpixelMeans; // Shape: [numBands, numSuperpixels]
 	private int numSuperpixels;
 
 	public SuperpixelContainer(INDArray data) {
@@ -44,12 +48,38 @@ public class SuperpixelContainer {
 		this.superpixelMap = Nd4j.createFromArray(superpixelMap).reshape(imageHeight, imageWidth);
 		this.numSuperpixels = Arrays.stream(superpixelMap).max().getAsInt() + 1;
 		superpixelMeans = Nd4j.zeros(this.numSuperpixels, numBands);
+		calculateSuperpixelMeans();
 	}
 
 
 	public void calculateSuperpixelMeans() {
 		// TODO: Precalculate the mean for every band in every superpixel
 		log.info("Calculating superpixel means");
+		// Start timer
+		long startTime = System.currentTimeMillis();
+		this.superpixelMeans = Nd4j.zeros((int) this.data.shape()[0], this.numSuperpixels);
+		IntStream.range(0, (int) this.data.shape()[0]).parallel().forEach(band -> calculateMean(band));
+		// Stop timer
+		long endTime = System.currentTimeMillis();
+		log.info("Superpixel means calculated in {} ms", endTime - startTime);
+
+	}
+
+	public void calculateMean(int bandIndex) {
+		INDArray bandData = this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
+		IntStream.range(0, this.numSuperpixels).forEach(superpixelIndex -> {
+			INDArray result = bandData.mul(this.superpixelMap.eq(superpixelIndex));
+
+			// Create a binary mask for non-zero elements
+			INDArray nonZeroMask = result.dup();
+			BooleanIndexing.replaceWhere(nonZeroMask, 1, Conditions.notEquals(0));
+			BooleanIndexing.replaceWhere(nonZeroMask, 0, Conditions.equals(0));
+
+			double mean = result.sumNumber().doubleValue() / nonZeroMask.sumNumber().intValue();
+			// TODO: Also calculate the median.
+			this.superpixelMeans.putScalar(bandIndex, superpixelIndex, mean);
+
+		});
 	}
 
 }
