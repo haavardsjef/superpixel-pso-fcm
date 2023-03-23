@@ -1,5 +1,6 @@
 package no.haavardsjef.fcm;
 
+import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.fcm.distancemetrics.IDistance;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.utility.IDataLoader;
@@ -9,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+@Log4j2
 public class FCM implements IObjectiveFunction {
 
 	private IDataLoader dataLoader;
@@ -55,6 +57,7 @@ public class FCM implements IObjectiveFunction {
 	}
 
 	public float evaluate(List<Integer> candidateSolution) {
+		long startTime = System.currentTimeMillis();
 		// Evaluate the fitness of the position by FCM
 
 		// Round the position to the nearest integer
@@ -84,8 +87,9 @@ public class FCM implements IObjectiveFunction {
 
 
 		fitnessCache.put(clusterCenters, J);
+		long endTime = System.currentTimeMillis();
+		log.info("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + J + " in " + (endTime - startTime) + "ms");
 
-		System.out.println("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + J);
 		return J;
 
 
