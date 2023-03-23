@@ -12,6 +12,7 @@ import org.nd4j.linalg.ops.transforms.Transforms;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -20,11 +21,13 @@ public class FuzzyCMeans implements IObjectiveFunction {
 	private final Dataset dataset;
 	private final INDArray data;
 	private final double fuzziness;
+	private HashMap<String, Float> fitnessCache;
 
 	public FuzzyCMeans(Dataset dataset, double fuzziness) {
 		this.dataset = dataset;
 		this.data = dataset.data;
 		this.fuzziness = fuzziness;
+		this.fitnessCache = new HashMap<>();
 	}
 
 
@@ -88,9 +91,20 @@ public class FuzzyCMeans implements IObjectiveFunction {
 
 	@Override
 	public float evaluate(List<Integer> candidateSolution) {
-		INDArray candidateCentroids = this.dataset.getBands(candidateSolution);
 		long startTime = System.currentTimeMillis();
-		float result = (float) this.objectiveFunction(candidateCentroids);
+		float result = 0.0f;
+		// Check if we have already evaluated this solution
+		if (this.fitnessCache.containsKey(candidateSolution.toString())) {
+			log.info("Found solution in cache. Returning cached fitness value.");
+			result = this.fitnessCache.get(candidateSolution.toString());
+		} else {
+			INDArray candidateCentroids = this.dataset.getBands(candidateSolution);
+			result = (float) this.objectiveFunction(candidateCentroids);
+
+			// Add to cache
+			this.fitnessCache.put(candidateSolution.toString(), result);
+		}
+
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
 		log.info("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + result + " in " + elapsedTime + "ms");
