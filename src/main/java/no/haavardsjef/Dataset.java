@@ -121,10 +121,23 @@ public class Dataset {
 		return this.data.get(NDArrayIndex.indices(indices), NDArrayIndex.all(), NDArrayIndex.all());
 	}
 
+	public INDArray getBandsFlattened(List<Integer> bandIndexes) {
+		INDArray dataFlattened = this.data.reshape(this.numBands, this.numPixels);
+		return dataFlattened.get(NDArrayIndex.indices(bandIndexes.stream().mapToLong(i -> i).toArray()), NDArrayIndex.all());
+	}
+
+
+	public int[] getGroundTruthFlattenedAsArray() {
+		return this.groundTruth.ravel().toIntVector();
+	}
+
 
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset("data/indian_pines", DatasetName.indian_pines);
-		ds.setupSuperpixelContainer();
+//		ds.setupSuperpixelContainer();
+		int[] gt = ds.getGroundTruthFlattenedAsArray();
+
+
 		double dist = ds.euclideanDistance(0, 1);
 		double spDist = ds.euclideanDistanceSP(0, 1);
 	}
