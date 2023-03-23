@@ -7,6 +7,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A container for a dataset. Contains the data, groundtruth, and other metadata.
@@ -113,6 +114,11 @@ public class Dataset {
 
 	public INDArray getBandFlattened(int bandIndex) {
 		return this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all()).reshape(this.numPixels);
+	}
+
+	public INDArray getBands(List<Integer> bandIndexes) {
+		long[] indices = bandIndexes.stream().mapToLong(i -> i).toArray();
+		return this.data.get(NDArrayIndex.indices(indices), NDArrayIndex.all(), NDArrayIndex.all());
 	}
 
 
