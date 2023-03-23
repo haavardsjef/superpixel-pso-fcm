@@ -90,13 +90,36 @@ public class Dataset {
 		return bandData1.distance2(bandData2); // Returns the euclidean distance.
 	}
 
+	public double[][] getDataAsArray() {
+		int firstDim = (int) this.data.size(0);
+		int flattenedSize = (int) (this.data.size(1) * this.data.size(2));
+
+		double[][] result = new double[firstDim][];
+
+		// Iterate through the first dimension
+		for (int i = 0; i < firstDim; i++) {
+			// Get the 2D tensor along the first dimension
+			INDArray tensor = this.data.tensorAlongDimension(i, 1, 2);
+
+			// Flatten the 2D tensor and store it in the result array
+			result[i] = tensor.reshape(flattenedSize).toDoubleVector();
+		}
+		return result;
+	}
+
+	public INDArray getBand(int bandIndex) {
+		return this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
+	}
+
+	public INDArray getBandFlattened(int bandIndex) {
+		return this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all()).reshape(this.numPixels);
+	}
+
 
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset("data/indian_pines", DatasetName.indian_pines);
 		ds.setupSuperpixelContainer();
 		double dist = ds.euclideanDistance(0, 1);
 		double spDist = ds.euclideanDistanceSP(0, 1);
-
-
 	}
 }
