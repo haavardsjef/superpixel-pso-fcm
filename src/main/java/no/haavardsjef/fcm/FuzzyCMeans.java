@@ -6,6 +6,7 @@ import no.haavardsjef.DatasetName;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.io.IOException;
@@ -31,45 +32,45 @@ public class FuzzyCMeans implements IObjectiveFunction {
 	}
 
 
-//	public INDArray calculateMembershipMatrix(INDArray candidateCentroids) {
-//		int numDataPoints = (int) data.size(0);
-//		int numClusters = (int) candidateCentroids.size(0);
-//		INDArray candidateMembershipMatrix = Nd4j.zeros(numDataPoints, numClusters);
-//		double epsilon = 1e-9;
-//
-//		IntStream.range(0, numDataPoints).parallel().forEach(i -> {
-//			INDArray dataPoint = data.get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all());
-//
-//			// Create a separate distances INDArray for each thread
-//			INDArray distances = Nd4j.create(numClusters);
-//
-//			for (int j = 0; j < numClusters; j++) {
-//				distances.putScalar(j, dataPoint.distance2(candidateCentroids.get(NDArrayIndex.point(j), NDArrayIndex.all(), NDArrayIndex.all())));
-//			}
-//			INDArray membershipDenominator = Transforms.pow(distances.reshape(1, -1).div(distances.add(epsilon)), 2.0 / (fuzziness - 1)).sum(1);
-//			candidateMembershipMatrix.putRow(i, membershipDenominator.rdiv(1.0));
-//		});
-//
-//		return candidateMembershipMatrix;
-//	}
-//
-//
-//	public double objectiveFunction(INDArray candidateCentroids) {
-//		INDArray candidateMembershipMatrix = calculateMembershipMatrix(candidateCentroids);
-//
-//		int numDataPoints = (int) data.size(0);
-//		int numClusters = (int) candidateCentroids.size(0);
-//
-//		return IntStream.range(0, numDataPoints).parallel().mapToDouble(i -> {
-//			double sum = 0.0;
-//			for (int j = 0; j < numClusters; j++) {
-//				double membership = Math.pow(candidateMembershipMatrix.getDouble(i, j), fuzziness);
-//				double distance = data.get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all()).distance2(candidateCentroids.get(NDArrayIndex.point(j), NDArrayIndex.all(), NDArrayIndex.all()));
-//				sum += membership * distance;
-//			}
-//			return sum;
-//		}).sum();
-//	}
+	public INDArray calculateMembershipMatrix(INDArray candidateCentroids) {
+		int numDataPoints = (int) data.size(0);
+		int numClusters = (int) candidateCentroids.size(0);
+		INDArray candidateMembershipMatrix = Nd4j.zeros(numDataPoints, numClusters);
+		double epsilon = 1e-9;
+
+		IntStream.range(0, numDataPoints).parallel().forEach(i -> {
+			INDArray dataPoint = data.get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all());
+
+			// Create a separate distances INDArray for each thread
+			INDArray distances = Nd4j.create(numClusters);
+
+			for (int j = 0; j < numClusters; j++) {
+				distances.putScalar(j, dataPoint.distance2(candidateCentroids.get(NDArrayIndex.point(j), NDArrayIndex.all(), NDArrayIndex.all())));
+			}
+			INDArray membershipDenominator = Transforms.pow(distances.reshape(1, -1).div(distances.add(epsilon)), 2.0 / (fuzziness - 1)).sum(1);
+			candidateMembershipMatrix.putRow(i, membershipDenominator.rdiv(1.0));
+		});
+
+		return candidateMembershipMatrix;
+	}
+
+
+	public double objectiveFunction(INDArray candidateCentroids) {
+		INDArray candidateMembershipMatrix = calculateMembershipMatrix(candidateCentroids);
+
+		int numDataPoints = (int) data.size(0);
+		int numClusters = (int) candidateCentroids.size(0);
+
+		return IntStream.range(0, numDataPoints).parallel().mapToDouble(i -> {
+			double sum = 0.0;
+			for (int j = 0; j < numClusters; j++) {
+				double membership = Math.pow(candidateMembershipMatrix.getDouble(i, j), fuzziness);
+				double distance = data.get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all()).distance2(candidateCentroids.get(NDArrayIndex.point(j), NDArrayIndex.all(), NDArrayIndex.all()));
+				sum += membership * distance;
+			}
+			return sum;
+		}).sum();
+	}
 
 	public INDArray calculateMembershipMatrix(List<Integer> candidateCentroids) {
 		int numDataPoints = (int) data.size(0);
