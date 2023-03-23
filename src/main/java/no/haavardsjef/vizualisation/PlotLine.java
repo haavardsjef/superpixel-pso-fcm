@@ -7,23 +7,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlotLine {
+public abstract class PlotLine {
 
 
-	public void plot(double[] data) {
+	public static void plot(List<Double> data) {
 		// Create x and y lists
 		List<Double> x = new ArrayList<>();
-		List<Double> y = new ArrayList<>();
 
-		for (int i = 0; i < data.length; i++) {
+		for (int i = 0; i < data.size(); i++) {
 			x.add((double) i);
-			y.add(data[i]);
 		}
 
 
 		// Plot swarm using matplotlib4j
 		Plot plt = Plot.create();
-		plt.plot().add(x, y);
+		plt.plot().add(x, data);
 
 		try {
 			plt.show();
