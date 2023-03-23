@@ -1,35 +1,31 @@
 package no.haavardsjef.classification;
 
 import libsvm.*;
+import lombok.extern.log4j.Log4j2;
+import no.haavardsjef.Dataset;
 import no.haavardsjef.utility.DataLoader;
-import no.haavardsjef.utility.IDataLoader;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import libsvm.svm;
-import libsvm.svm_model;
-import libsvm.svm_problem;
 
+@Log4j2
 public class SVMClassifier implements IClassifier {
 
-	DataLoader dataLoader;
+	Dataset dataset;
 
-	public SVMClassifier(DataLoader dataLoader) {
-		this.dataLoader = dataLoader;
-		dataLoader.loadData();
+	public SVMClassifier(Dataset dataset) {
+		this.dataset = dataset;
 	}
 
 
 	public void evaluate(List<Integer> selectedBands) {
-
+		log.info("Evaluating SVM classifier with selected bands: " + selectedBands);
 		// TODO: Consider normalizing each pixel so that all bands add to 1
 
-		// Load ground truths
-		dataLoader.loadGroundTruth();
-		int[] groundTruth = dataLoader.getGroundTruthFlattened();
-		double[][] pixelValuesForSelectedBands = this.dataLoader.getPixelValuesForBands(selectedBands);
+
+		int[] groundTruth = dataset.getGroundTruthFlattenedAsArray();
+		double[][] pixelValuesForSelectedBands = dataset.getBandsFlattened(selectedBands).transpose().toDoubleMatrix();
+
 
 		if (pixelValuesForSelectedBands.length != groundTruth.length) {
 			throw new RuntimeException("The number of ground truths does not match the number of pixels");
@@ -89,7 +85,7 @@ public class SVMClassifier implements IClassifier {
 
 		int correct = 0;
 
-		for(int i = 0; i < problem.l; i++) {
+		for (int i = 0; i < problem.l; i++) {
 			double predictedLabel = svm.svm_predict(model, problem.x[i]);
 			double actualLabel = problem.y[i];
 
@@ -121,7 +117,7 @@ public class SVMClassifier implements IClassifier {
 
 			for (int j = 0; j < numFeatures; j++) {
 				svm_node node = new svm_node();
-				node.index = j+1;
+				node.index = j + 1;
 				node.value = data[i].features()[j];
 
 				prob.x[i][j] = node;
