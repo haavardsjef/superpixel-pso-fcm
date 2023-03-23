@@ -3,21 +3,27 @@ package no.haavardsjef.fcm;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.Dataset;
 import no.haavardsjef.DatasetName;
+import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 @Log4j2
-public class FuzzyCMeans {
-	private INDArray data;
-	private double fuzziness;
+public class FuzzyCMeans implements IObjectiveFunction {
+	private final Dataset dataset;
+	private final INDArray data;
+	private final double fuzziness;
 
-	public FuzzyCMeans(INDArray data, double fuzziness) {
-		this.data = data;
+	public FuzzyCMeans(Dataset dataset, double fuzziness) {
+		this.dataset = dataset;
+		this.data = dataset.data;
 		this.fuzziness = fuzziness;
 	}
 
@@ -65,37 +71,30 @@ public class FuzzyCMeans {
 
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset("data/indian_pines", DatasetName.indian_pines);
-		INDArray data = ds.data;
-
 		double fuzziness = 2.0;
 
-		FuzzyCMeans fuzzyCMeans = new FuzzyCMeans(data, fuzziness);
+		FuzzyCMeans fuzzyCMeans = new FuzzyCMeans(ds, fuzziness);
 
 
 		// Get 10 bands
-		int[] bands = {9, 11, 69, 70, 76, 82, 90, 95, 101, 115};
-		INDArray band1INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[0]), NDArrayIndex.all());
-		INDArray band2INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[1]), NDArrayIndex.all());
-		INDArray band3INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[2]), NDArrayIndex.all());
-		INDArray band4INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[3]), NDArrayIndex.all());
-		INDArray band5INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[4]), NDArrayIndex.all());
-		INDArray band6INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[5]), NDArrayIndex.all());
-		INDArray band7INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[6]), NDArrayIndex.all());
-		INDArray band8INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[7]), NDArrayIndex.all());
-		INDArray band9INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[8]), NDArrayIndex.all());
-		INDArray band10INDArray = data.get(NDArrayIndex.all(), NDArrayIndex.point(bands[9]), NDArrayIndex.all());
+		List<Integer> bandList = new ArrayList<>();
+		for (int i = 0; i < 100; i++) {
+			bandList.add(i);
+		}
 
-		INDArray candidateCentroids = Nd4j.stack(0, band1INDArray, band2INDArray, band3INDArray, band4INDArray, band5INDArray, band6INDArray, band7INDArray, band8INDArray, band9INDArray, band10INDArray);
-		log.info("Calculating objective function value for the candidate solution");
-		// Start timer
+		fuzzyCMeans.evaluate(bandList);
+
+	}
+
+	@Override
+	public float evaluate(List<Integer> candidateSolution) {
+		INDArray candidateCentroids = this.dataset.getBands(candidateSolution);
 		long startTime = System.currentTimeMillis();
-		double objectiveFunctionValue = fuzzyCMeans.objectiveFunction(candidateCentroids);
-		// Stop timer
+		float result = (float) this.objectiveFunction(candidateCentroids);
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
-		log.info("Evaluation time: " + elapsedTime + " ms");
-		System.out.println("Objective function value for the candidate solution: " + objectiveFunctionValue);
-
+		log.info("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + result + " in " + elapsedTime + "ms");
+		return result;
 	}
 }
 
