@@ -75,12 +75,13 @@ public class Particle {
 
 	public float evaluate() {
 		// Evaluate the fitness of the particle, returns true if the particle has improved
-		this.fitness = objectiveFunction.evaluate(this.getDiscretePositionSorted());
-		if (this.fitness < this.bestFitness) {
-			this.bestFitness = this.fitness;
+		float newFitness = objectiveFunction.evaluate(this.getDiscretePositionSorted());
+		if (newFitness < this.bestFitness) {
+			this.bestFitness = newFitness;
 			this.bestPosition = this.position;
 		}
-		return this.fitness;
+		this.fitness = newFitness;
+		return newFitness;
 	}
 
 	@Override

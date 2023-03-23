@@ -54,7 +54,7 @@ public class SwarmPopulation {
 
 				if (p_fitness < globalBestFitness) {
 					globalBestFitness = particle.getFitness();
-					globalBestPosition = particle.getPosition();
+					globalBestPosition = particle.getPosition().clone();
 					this.solution = particle;
 				}
 				totalFitness += p_fitness;
