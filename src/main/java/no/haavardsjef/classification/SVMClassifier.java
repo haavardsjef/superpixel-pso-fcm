@@ -6,7 +6,12 @@ import no.haavardsjef.Dataset;
 import no.haavardsjef.utility.DataLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 @Log4j2
 public class SVMClassifier implements IClassifier {
@@ -15,6 +20,12 @@ public class SVMClassifier implements IClassifier {
 
 	public SVMClassifier(Dataset dataset) {
 		this.dataset = dataset;
+
+		svm.svm_set_print_string_function(new libsvm.svm_print_interface() {
+			@Override
+			public void print(String s) {
+			} // Disables svm output
+		});
 	}
 
 
@@ -23,82 +34,112 @@ public class SVMClassifier implements IClassifier {
 		// TODO: Consider normalizing each pixel so that all bands add to 1
 
 
+		// Load features and ground truth
 		int[] groundTruth = dataset.getGroundTruthFlattenedAsArray();
 		double[][] pixelValuesForSelectedBands = dataset.getBandsFlattened(selectedBands).transpose().toDoubleMatrix();
 
-
+		// Verify that the number of ground truths matches the number of pixels
 		if (pixelValuesForSelectedBands.length != groundTruth.length) {
 			throw new RuntimeException("The number of ground truths does not match the number of pixels");
 		}
 
+		// Create samples
 		Sample[] samples = new Sample[groundTruth.length];
-
 		for (int i = 0; i < pixelValuesForSelectedBands.length; i++) {
 			samples[i] = new Sample(i, groundTruth[i], pixelValuesForSelectedBands[i]);
 		}
 
-		// Split 10% of the data for testing
-		int testSize = (int) (samples.length * 0.1);
-		Sample[] testSamples = new Sample[testSize];
-		Sample[] trainingSamples = new Sample[samples.length - testSize];
-
-		System.arraycopy(samples, 0, trainingSamples, 0, trainingSamples.length);
-		System.arraycopy(samples, trainingSamples.length, testSamples, 0, testSamples.length);
+		// Shuffle and split into training and test set
+		double trainingRatio = 0.8; // 80% for training, 20% for testing
+		Sample[][] split = splitSamples(samples, trainingRatio);
+		Sample[] trainingSamples = split[0];
+		Sample[] testSamples = split[1];
 
 		svm_model model = train(trainingSamples);
-		test(model, testSamples);
+
+		double accuracy = evaluateAccuracy(model, testSamples);
 
 
 	}
 
+	public static void saveConfusionMatrixToCSV(int[][] confusionMatrix, String filePath) {
+		try (PrintWriter writer = new PrintWriter(new File(filePath))) {
+			for (int i = 0; i < confusionMatrix.length; i++) {
+				StringBuilder row = new StringBuilder();
+				for (int j = 0; j < confusionMatrix[i].length; j++) {
+					row.append(confusionMatrix[i][j]);
+					if (j < confusionMatrix[i].length - 1) {
+						row.append(",");
+					}
+				}
+				writer.println(row.toString());
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println("Error saving confusion matrix to CSV file: " + e.getMessage());
+		}
+	}
+
 	private svm_model train(Sample[] data) {
-		System.out.println("Starting training");
+		log.info("Training SVM classifier with " + data.length + " samples");
+		long startTime = System.currentTimeMillis();
 		svm_problem trainingProblem = createProblem(data);
 
-		svm_parameter params = new svm_parameter();
-		params.svm_type = svm_parameter.C_SVC;
-		params.kernel_type = svm_parameter.RBF;
-		params.degree = 3;
-		params.coef0 = 0;
-		params.nu = 0.5;
-		params.cache_size = 100;
-		params.eps = 1e-3;
-		params.p = 0.1;
-		params.shrinking = 1;
-		params.probability = 0;
-		params.nr_weight = 0;
-		params.weight_label = new int[0];
-		params.weight = new double[0];
+		svm_parameter param = new svm_parameter();
+		param.svm_type = svm_parameter.C_SVC;
+		param.kernel_type = svm_parameter.RBF;
+		param.gamma = 0.5;
+		param.C = 1;
+		param.eps = 0.001;
+		param.cache_size = 100;
 
-		params.gamma = 241.63182404651315;
-		params.C = 2.0;
-
-		svm_model model = svm.svm_train(trainingProblem, params);
+		svm_model model = svm.svm_train(trainingProblem, param);
+		long endTime = System.currentTimeMillis();
+		log.info("Training took " + (endTime - startTime) / 1000 + " seconds");
 
 		return model;
 	}
 
-	private void test(svm_model model, Sample[] testSamples) {
-		System.out.println("Starting testing");
 
-		svm_problem problem = createProblem(testSamples);
-
-		int correct = 0;
-
-		for (int i = 0; i < problem.l; i++) {
-			double predictedLabel = svm.svm_predict(model, problem.x[i]);
-			double actualLabel = problem.y[i];
-
-			System.out.println("Predicted: " + predictedLabel + " Actual: " + actualLabel);
-
-			if (predictedLabel == actualLabel) {
-				correct++;
-			}
-
+	private static int predict(svm_model model, double[] features) {
+		svm_node[] nodes = new svm_node[features.length];
+		for (int i = 0; i < features.length; i++) {
+			nodes[i] = new svm_node();
+			nodes[i].index = i + 1;
+			nodes[i].value = features[i];
 		}
 
-		System.out.println("Correct: " + correct + " Total: " + problem.l);
-		System.out.println("Accuracy: " + (double) correct / problem.l);
+		double prediction = svm.svm_predict(model, nodes);
+		return (int) prediction;
+	}
+
+	private static double evaluateAccuracy(svm_model model, Sample[] testSamples) {
+		log.info("Evaluating accuracy of SVM classifier with " + testSamples.length + " samples");
+		long startTime = System.currentTimeMillis();
+		int numCorrectPredictions = 0;
+		int numClasses = Arrays.stream(testSamples).mapToInt(Sample::label).max().getAsInt() + 1;
+		int[][] confusionMatrix = new int[numClasses][numClasses];
+
+		for (Sample sample : testSamples) {
+			int trueLabel = sample.label();
+			double[] features = sample.features();
+			int predictedLabel = predict(model, features);
+
+			if (predictedLabel == trueLabel) {
+				numCorrectPredictions++;
+			}
+			confusionMatrix[trueLabel][predictedLabel]++;
+		}
+
+		String filePath = "confusion_matrix.csv";
+		saveConfusionMatrixToCSV(confusionMatrix, filePath);
+		log.info("Confusion matrix saved to " + filePath);
+
+		double accuracy = (double) numCorrectPredictions / testSamples.length;
+		long endTime = System.currentTimeMillis();
+		log.info("Evaluation took " + (endTime - startTime) + " ms");
+		log.info("Accuracy: " + accuracy * 100 + "%");
+		log.info("Number of correct predictions: " + numCorrectPredictions, " out of " + testSamples.length);
+		return accuracy;
 	}
 
 	private svm_problem createProblem(Sample[] data) {
@@ -126,5 +167,27 @@ public class SVMClassifier implements IClassifier {
 
 		return prob;
 	}
+
+	private static Sample[][] splitSamples(Sample[] samples, double trainingRatio) {
+		// Shuffle the samples array
+		Random random = new Random();
+		for (int i = samples.length - 1; i > 0; i--) {
+			int index = random.nextInt(i + 1);
+			Sample temp = samples[index];
+			samples[index] = samples[i];
+			samples[i] = temp;
+		}
+
+		// Split the samples array into training and test sets
+		int trainSize = (int) (samples.length * trainingRatio);
+		int testSize = samples.length - trainSize;
+		Sample[] trainingSamples = new Sample[trainSize];
+		Sample[] testSamples = new Sample[testSize];
+		System.arraycopy(samples, 0, trainingSamples, 0, trainSize);
+		System.arraycopy(samples, trainSize, testSamples, 0, testSize);
+
+		return new Sample[][]{trainingSamples, testSamples};
+	}
+
 
 }

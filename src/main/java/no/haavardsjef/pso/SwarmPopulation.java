@@ -83,7 +83,9 @@ public class SwarmPopulation {
 		long duration = (endTime - startTime) / 1000000000;
 		System.out.println("Elapsed time for optimization: " + duration + "s");
 
-		PlotLine.plot(avgFitness);
+		if (plot) {
+			PlotLine.plot(avgFitness);
+		}
 
 
 		System.out.println("Global best fitness: " + globalBestFitness);
