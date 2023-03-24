@@ -3,6 +3,7 @@ package no.haavardsjef.experiments;
 import no.haavardsjef.Dataset;
 import no.haavardsjef.DatasetName;
 import no.haavardsjef.classification.SVMClassifier;
+import no.haavardsjef.fcm.FCM;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.Particle;
@@ -11,6 +12,8 @@ import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.utility.DataLoader;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BandSelectionExperiment implements IExperiment {
@@ -18,9 +21,9 @@ public class BandSelectionExperiment implements IExperiment {
 
 	public void runExperiment() throws IOException {
 //		IObjectiveFunction objectiveFunction = new FCM(2.0f, new EuclideanDistance(), new DataLoader());
-		Dataset dataset = new Dataset("data/indian_pines", DatasetName.indian_pines);
+		Dataset dataset = new Dataset("data/salinas", DatasetName.Salinas);
 		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
-		int numberOfBandsToSelect = 5;
+		int numberOfBandsToSelect = 10;
 		Bounds bounds = new Bounds(0, 199);
 
 
@@ -28,10 +31,10 @@ public class BandSelectionExperiment implements IExperiment {
 		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
 
 		List<Integer> selectedBands = solution.getDiscretePositionSorted();
-//		List<Integer> selectedBands = new ArrayList<>(Arrays.asList(8, 30, 41, 59, 74, 101, 111, 118, 155, 163, 176, 186));
+//		List<Integer> selectedBands = new ArrayList<>(Arrays.asList(2, 22));
 		System.out.println("Selected bands:" + selectedBands);
 
-		SVMClassifier svmClassifier = new SVMClassifier(new DataLoader());
+		SVMClassifier svmClassifier = new SVMClassifier(dataset);
 		svmClassifier.evaluate(selectedBands);
 
 
