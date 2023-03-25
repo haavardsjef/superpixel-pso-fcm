@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 public class FuzzyCMeansTest extends TestCase {
 
 	public void testEvaluate() throws IOException {
-		Dataset dataset = new Dataset("data/indian_pines", DatasetName.indian_pines);
+		Dataset dataset = new Dataset(DatasetName.indian_pines);
 
 		FuzzyCMeans fuzzyCMeans = new FuzzyCMeans(dataset, 2.0);
 

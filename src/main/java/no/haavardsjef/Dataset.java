@@ -27,8 +27,8 @@ public class Dataset {
 	private DatasetName datasetName;
 	private SuperpixelContainer superpixelContainer;
 
-	public Dataset(String datasetPath, DatasetName datasetName) throws IOException {
-		this.datasetPath = datasetPath;
+	public Dataset(DatasetName datasetName) throws IOException {
+		this.datasetPath = "data/" + datasetName;
 		this.datasetName = datasetName;
 		this.load();
 	}
@@ -133,7 +133,7 @@ public class Dataset {
 
 
 	public static void main(String[] args) throws IOException {
-		Dataset ds = new Dataset("data/indian_pines", DatasetName.indian_pines);
+		Dataset ds = new Dataset(DatasetName.indian_pines);
 //		ds.setupSuperpixelContainer();
 		int[] gt = ds.getGroundTruthFlattenedAsArray();
 

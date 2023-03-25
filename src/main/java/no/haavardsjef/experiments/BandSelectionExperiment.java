@@ -21,7 +21,7 @@ public class BandSelectionExperiment implements IExperiment {
 
 	public void runExperiment() throws IOException {
 //		IObjectiveFunction objectiveFunction = new FCM(2.0f, new EuclideanDistance(), new DataLoader());
-		Dataset dataset = new Dataset("data/salinas", DatasetName.Salinas);
+		Dataset dataset = new Dataset(DatasetName.indian_pines);
 		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
 		int numberOfBandsToSelect = 10;
 		Bounds bounds = new Bounds(0, 199);

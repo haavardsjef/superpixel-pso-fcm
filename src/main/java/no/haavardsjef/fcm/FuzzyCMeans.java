@@ -116,7 +116,7 @@ public class FuzzyCMeans implements IObjectiveFunction {
 
 
 	public static void main(String[] args) throws IOException {
-		Dataset ds = new Dataset("data/indian_pines", DatasetName.indian_pines);
+		Dataset ds = new Dataset(DatasetName.indian_pines);
 		double fuzziness = 2.0;
 
 		FuzzyCMeans fuzzyCMeans = new FuzzyCMeans(ds, fuzziness);
