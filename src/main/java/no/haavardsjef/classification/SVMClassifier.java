@@ -38,6 +38,10 @@ public class SVMClassifier implements IClassifier {
 		int[] groundTruth = dataset.getGroundTruthFlattenedAsArray();
 		double[][] pixelValuesForSelectedBands = dataset.getBandsFlattened(selectedBands).transpose().toDoubleMatrix();
 
+		// Count number of classes
+		int numClasses = Arrays.stream(groundTruth).max().getAsInt() + 1;
+
+
 		// Verify that the number of ground truths matches the number of pixels
 		if (pixelValuesForSelectedBands.length != groundTruth.length) {
 			throw new RuntimeException("The number of ground truths does not match the number of pixels");
@@ -57,7 +61,7 @@ public class SVMClassifier implements IClassifier {
 
 		svm_model model = train(trainingSamples);
 
-		double accuracy = evaluateAccuracy(model, testSamples);
+		double accuracy = evaluateAccuracy(model, testSamples, numClasses);
 
 
 	}
@@ -112,11 +116,10 @@ public class SVMClassifier implements IClassifier {
 		return (int) prediction;
 	}
 
-	private static double evaluateAccuracy(svm_model model, Sample[] testSamples) {
+	private static double evaluateAccuracy(svm_model model, Sample[] testSamples, int numClasses) {
 		log.info("Evaluating accuracy of SVM classifier with " + testSamples.length + " samples");
 		long startTime = System.currentTimeMillis();
 		int numCorrectPredictions = 0;
-		int numClasses = Arrays.stream(testSamples).mapToInt(Sample::label).max().getAsInt() + 1;
 		int[][] confusionMatrix = new int[numClasses][numClasses];
 
 		for (Sample sample : testSamples) {
