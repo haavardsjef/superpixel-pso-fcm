@@ -1,4 +1,4 @@
-package no.haavardsjef;
+package no.haavardsjef.dataset;
 
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.superpixelsegmentation.SuperpixelContainer;

@@ -1,23 +1,20 @@
-package no.haavardsjef;
+package no.haavardsjef.dataset;
 
-import no.haavardsjef.superpixelsegmentation.SuperpixelContainer;
 import no.haavardsjef.utility.BenchmarkDataLoader;
-import no.haavardsjef.utility.HyperspectralDataLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.IOException;
-import java.util.List;
 
 public class BenchmarkDataset implements IDataset {
 
 	private INDArray data; // Rank: 2
 	private int numDataPoints;
 	private String datasetPath;
-	private DatasetName datasetName;
+	private BenchmarkDatasetName datasetName;
 
-	public BenchmarkDataset(DatasetName datasetName) throws IOException {
-		this.datasetPath = "data/" + datasetName;
+	public BenchmarkDataset(BenchmarkDatasetName datasetName) throws IOException {
+		this.datasetPath = "data/benchmarks/" + datasetName;
 		this.datasetName = datasetName;
 		this.load();
 	}
@@ -46,13 +43,8 @@ public class BenchmarkDataset implements IDataset {
 		return this.data;
 	}
 
-	public static void main(String[] args) {
-		try {
-			BenchmarkDataset benchmarkDataset = new BenchmarkDataset(DatasetName.benchmark_problem_clustering);
-			double distance = benchmarkDataset.euclideanDistance(0, 1);
-			System.out.println(distance);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public double[][] getDataAsArray() {
+		return this.data.toDoubleMatrix();
 	}
+
 }

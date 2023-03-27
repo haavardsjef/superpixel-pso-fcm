@@ -1,9 +1,9 @@
 package no.haavardsjef.fcm;
 
 import lombok.extern.log4j.Log4j2;
-import no.haavardsjef.Dataset;
-import no.haavardsjef.DatasetName;
-import no.haavardsjef.IDataset;
+import no.haavardsjef.dataset.Dataset;
+import no.haavardsjef.dataset.DatasetName;
+import no.haavardsjef.dataset.IDataset;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;

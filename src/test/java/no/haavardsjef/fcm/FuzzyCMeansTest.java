@@ -1,8 +1,8 @@
 package no.haavardsjef.fcm;
 
 import junit.framework.TestCase;
-import no.haavardsjef.Dataset;
-import no.haavardsjef.DatasetName;
+import no.haavardsjef.dataset.Dataset;
+import no.haavardsjef.dataset.DatasetName;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.IOException;

@@ -2,9 +2,7 @@ package no.haavardsjef.classification;
 
 import libsvm.*;
 import lombok.extern.log4j.Log4j2;
-import no.haavardsjef.Dataset;
-import no.haavardsjef.utility.DataLoader;
-import org.nd4j.linalg.api.ndarray.INDArray;
+import no.haavardsjef.dataset.Dataset;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,8 +51,9 @@ public class SVMClassifier implements IClassifier {
 			samples[i] = new Sample(i, groundTruth[i], pixelValuesForSelectedBands[i]);
 		}
 
+
 		// Shuffle and split into training and test set
-		double trainingRatio = 0.8; // 80% for training, 20% for testing
+		double trainingRatio = 0.9; // 80% for training, 20% for testing
 		Sample[][] split = splitSamples(samples, trainingRatio);
 		Sample[] trainingSamples = split[0];
 		Sample[] testSamples = split[1];

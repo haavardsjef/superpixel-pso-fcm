@@ -1,33 +1,40 @@
 package no.haavardsjef.experiments;
 
-import no.haavardsjef.fcm.FCM;
-import no.haavardsjef.fcm.distancemetrics.EuclideanDistance;
+import no.haavardsjef.dataset.BenchmarkDataset;
+import no.haavardsjef.dataset.BenchmarkDatasetName;
+import no.haavardsjef.dataset.DatasetName;
+import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
-import no.haavardsjef.utility.DataLoaderCSV;
 import no.haavardsjef.vizualisation.PlotScatter;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ClusteringBenchmarkExperiment implements IExperiment {
 
-	public void runExperiment() {
+	public void runExperiment() throws IOException {
 
-		IObjectiveFunction objectiveFunction = new FCM(2.0f, new EuclideanDistance(), new DataLoaderCSV());
+		BenchmarkDataset dataset = new BenchmarkDataset(BenchmarkDatasetName.clustering_hard);
+		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
 		Bounds bounds = new Bounds(0, 999);
-		SwarmPopulation swarmPopulation = new SwarmPopulation(1000, 2, bounds, objectiveFunction);
+		SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, bounds, objectiveFunction);
 		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
 
 
 		List<Integer> clusterCenterIndexes = solution.getDiscretePositionSorted();
 
+
 		// Plot the clusters
 		PlotScatter plotScatter = new PlotScatter();
-		DataLoaderCSV dataLoader = new DataLoaderCSV();
-		dataLoader.loadData();
-		plotScatter.plot(dataLoader.getData(), clusterCenterIndexes);
+		plotScatter.plot(dataset.getDataAsArray(), clusterCenterIndexes);
+	}
+
+	public static void main(String[] args) throws IOException {
+		ClusteringBenchmarkExperiment clusteringBenchmarkExperiment = new ClusteringBenchmarkExperiment();
+		clusteringBenchmarkExperiment.runExperiment();
 	}
 
 

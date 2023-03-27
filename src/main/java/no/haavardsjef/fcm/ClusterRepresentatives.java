@@ -1,6 +1,6 @@
 package no.haavardsjef.fcm;
 
-import no.haavardsjef.Dataset;
+import no.haavardsjef.dataset.Dataset;
 
 import java.util.List;
 

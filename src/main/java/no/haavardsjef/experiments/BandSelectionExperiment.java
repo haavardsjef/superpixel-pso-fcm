@@ -1,15 +1,12 @@
 package no.haavardsjef.experiments;
 
-import no.haavardsjef.Dataset;
-import no.haavardsjef.DatasetName;
+import no.haavardsjef.dataset.Dataset;
+import no.haavardsjef.dataset.DatasetName;
 import no.haavardsjef.classification.SVMClassifier;
-import no.haavardsjef.fcm.FCM;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
-import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
-import no.haavardsjef.utility.DataLoader;
 
 import java.io.IOException;
 import java.util.ArrayList;

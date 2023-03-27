@@ -1,7 +1,6 @@
 package no.haavardsjef.classification;
 
-import no.haavardsjef.Dataset;
-import no.haavardsjef.DatasetName;
+import no.haavardsjef.dataset.DatasetName;
 
 
 import java.util.List;

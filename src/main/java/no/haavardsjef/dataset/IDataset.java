@@ -1,4 +1,4 @@
-package no.haavardsjef;
+package no.haavardsjef.dataset;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
