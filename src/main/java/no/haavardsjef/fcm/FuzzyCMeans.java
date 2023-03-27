@@ -3,6 +3,7 @@ package no.haavardsjef.fcm;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.Dataset;
 import no.haavardsjef.DatasetName;
+import no.haavardsjef.IDataset;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -19,14 +20,14 @@ import java.util.stream.IntStream;
 
 @Log4j2
 public class FuzzyCMeans implements IObjectiveFunction {
-	private final Dataset dataset;
+	private final IDataset dataset;
 	private final INDArray data;
 	private final double fuzziness;
 	private HashMap<String, Float> fitnessCache;
 
-	public FuzzyCMeans(Dataset dataset, double fuzziness) {
+	public FuzzyCMeans(IDataset dataset, double fuzziness) {
 		this.dataset = dataset;
-		this.data = dataset.data;
+		this.data = dataset.getData();
 		this.fuzziness = fuzziness;
 		this.fitnessCache = new HashMap<>();
 	}

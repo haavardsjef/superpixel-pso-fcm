@@ -14,9 +14,9 @@ import java.util.List;
  * Provides useful methods for working with the dataset.
  */
 @Log4j2
-public class Dataset {
+public class Dataset implements IDataset {
 
-	public INDArray data;
+	private INDArray data;
 	public INDArray groundTruth;
 	private int numBands;
 	private int imageWidth;
@@ -72,6 +72,11 @@ public class Dataset {
 		INDArray bandData2 = this.data.get(NDArrayIndex.point(bandIndex2), NDArrayIndex.all(), NDArrayIndex.all());
 
 		return bandData1.distance2(bandData2); // Returns the euclidean distance.
+	}
+
+	@Override
+	public INDArray getData() {
+		return this.data;
 	}
 
 	/**
