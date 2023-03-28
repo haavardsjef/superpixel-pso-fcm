@@ -1,6 +1,7 @@
 package no.haavardsjef.dataset;
 
 import no.haavardsjef.utility.BenchmarkDataLoader;
+import no.haavardsjef.utility.Bounds;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
@@ -12,6 +13,7 @@ public class BenchmarkDataset implements IDataset {
 	private int numDataPoints;
 	private String datasetPath;
 	private BenchmarkDatasetName datasetName;
+	private Bounds bounds;
 
 	public BenchmarkDataset(BenchmarkDatasetName datasetName) throws IOException {
 		this.datasetPath = "data/benchmarks/" + datasetName;
@@ -28,6 +30,7 @@ public class BenchmarkDataset implements IDataset {
 	private void load() throws IOException {
 		String dataset = this.datasetPath + "/data.csv";
 		this.data = BenchmarkDataLoader.loadData(dataset);
+		this.bounds = new Bounds(0, (int) this.data.shape()[0] - 1);
 	}
 
 
@@ -41,6 +44,11 @@ public class BenchmarkDataset implements IDataset {
 	@Override
 	public INDArray getData() {
 		return this.data;
+	}
+
+	@Override
+	public Bounds getBounds() {
+		return this.bounds;
 	}
 
 	public double[][] getDataAsArray() {

@@ -2,6 +2,7 @@ package no.haavardsjef.dataset;
 
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.superpixelsegmentation.SuperpixelContainer;
+import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.utility.HyperspectralDataLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
@@ -26,6 +27,7 @@ public class Dataset implements IDataset {
 	private String datasetPath;
 	private DatasetName datasetName;
 	private SuperpixelContainer superpixelContainer;
+	private Bounds bounds;
 
 	public Dataset(DatasetName datasetName) throws IOException {
 		this.datasetPath = "data/" + datasetName;
@@ -49,6 +51,7 @@ public class Dataset implements IDataset {
 		this.imageHeight = (int) this.data.shape()[1];
 		this.numPixels = this.imageWidth * this.imageHeight;
 		this.numClasses = this.groundTruth.maxNumber().intValue() + 1;
+		this.bounds = new Bounds(0, this.numBands - 1);
 		log.info("Dataset {} loaded, numBands: {}, imageWidth: {}, imageHeight: {}, numPixels: {}, numClasses: {}", this.datasetName,
 				this.numBands, this.imageWidth, this.imageHeight, this.numPixels, this.numClasses);
 	}
@@ -77,6 +80,11 @@ public class Dataset implements IDataset {
 	@Override
 	public INDArray getData() {
 		return this.data;
+	}
+
+	@Override
+	public Bounds getBounds() {
+		return this.bounds;
 	}
 
 	/**

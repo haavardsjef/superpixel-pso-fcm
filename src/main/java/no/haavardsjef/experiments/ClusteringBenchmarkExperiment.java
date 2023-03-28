@@ -19,7 +19,7 @@ public class ClusteringBenchmarkExperiment implements IExperiment {
 
 		BenchmarkDataset dataset = new BenchmarkDataset(BenchmarkDatasetName.clustering_hard);
 		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
-		Bounds bounds = new Bounds(0, 999);
+		Bounds bounds = dataset.getBounds();
 		SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, bounds, objectiveFunction);
 		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
 

@@ -5,6 +5,7 @@ import no.haavardsjef.dataset.DatasetName;
 import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
+import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
 
@@ -21,7 +22,7 @@ public class BandSelectionExperiment implements IExperiment {
 		Dataset dataset = new Dataset(DatasetName.indian_pines);
 		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
 		int numberOfBandsToSelect = 10;
-		Bounds bounds = new Bounds(0, 199);
+		Bounds bounds = dataset.getBounds();
 
 
 		SwarmPopulation swarmPopulation = new SwarmPopulation(100, numberOfBandsToSelect, bounds, objectiveFunction);
