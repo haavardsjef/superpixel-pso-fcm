@@ -4,12 +4,11 @@ import libsvm.*;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.dataset.Dataset;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
+
+import static no.haavardsjef.classification.ClassificationUtilities.splitSamples;
 
 @Log4j2
 public class SVMClassifier implements IClassifier {
@@ -29,7 +28,6 @@ public class SVMClassifier implements IClassifier {
 
 	public void evaluate(List<Integer> selectedBands) {
 		log.info("Evaluating SVM classifier with selected bands: " + selectedBands);
-		// TODO: Consider normalizing each pixel so that all bands add to 1
 
 
 		// Load features and ground truth
@@ -53,7 +51,7 @@ public class SVMClassifier implements IClassifier {
 
 
 		// Shuffle and split into training and test set
-		double trainingRatio = 0.9; // 80% for training, 20% for testing
+		double trainingRatio = 0.1;
 		Sample[][] split = splitSamples(samples, trainingRatio);
 		Sample[] trainingSamples = split[0];
 		Sample[] testSamples = split[1];
@@ -168,27 +166,6 @@ public class SVMClassifier implements IClassifier {
 		}
 
 		return prob;
-	}
-
-	private static Sample[][] splitSamples(Sample[] samples, double trainingRatio) {
-		// Shuffle the samples array
-		Random random = new Random();
-		for (int i = samples.length - 1; i > 0; i--) {
-			int index = random.nextInt(i + 1);
-			Sample temp = samples[index];
-			samples[index] = samples[i];
-			samples[i] = temp;
-		}
-
-		// Split the samples array into training and test sets
-		int trainSize = (int) (samples.length * trainingRatio);
-		int testSize = samples.length - trainSize;
-		Sample[] trainingSamples = new Sample[trainSize];
-		Sample[] testSamples = new Sample[testSize];
-		System.arraycopy(samples, 0, trainingSamples, 0, trainSize);
-		System.arraycopy(samples, trainSize, testSamples, 0, testSize);
-
-		return new Sample[][]{trainingSamples, testSamples};
 	}
 
 
