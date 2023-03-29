@@ -42,3 +42,33 @@ public class ClassificationUtilities {
 
 		return normalized;
 	}
+
+	public static Sample[][] normalizeTogether(Sample[] training, Sample[] testing) {
+		Sample[] all = ArrayUtils.addAll(training, testing);
+
+		double[] featureMin = IntStream.range(0, all[0].features().length)
+				.mapToDouble(b -> Arrays.stream(all).mapToDouble(s -> s.features()[b]).min().getAsDouble())
+				.toArray();
+		double[] featureMax = IntStream.range(0, all[0].features().length)
+				.mapToDouble(b -> Arrays.stream(all).mapToDouble(s -> s.features()[b]).max().getAsDouble())
+				.toArray();
+
+		// Normalize training samples
+		for (Sample sample : training) {
+			double[] features = sample.features();
+			for (int i = 0; i < features.length; i++) {
+				features[i] = (features[i] - featureMin[i]) / (featureMax[i] - featureMin[i]);
+			}
+		}
+
+		// Normalize test samples
+		for (Sample sample : testing) {
+			double[] features = sample.features();
+			for (int i = 0; i < features.length; i++) {
+				features[i] = (features[i] - featureMin[i]) / (featureMax[i] - featureMin[i]);
+			}
+		}
+
+		return new Sample[][]{training, testing};
+	}
+}
