@@ -87,6 +87,14 @@ public class Dataset implements IDataset {
 		return this.bounds;
 	}
 
+	public int getNumSuperpixels() {
+		return superpixelContainer.getNumSuperpixels();
+	}
+
+	public int getNumPixels() {
+		return this.numPixels;
+	}
+
 	/**
 	 * Calculates the euclidean distance between two bands, using mean of superpixels.
 	 *
@@ -137,6 +145,14 @@ public class Dataset implements IDataset {
 	public INDArray getBandsFlattened(List<Integer> bandIndexes) {
 		INDArray dataFlattened = this.data.reshape(this.numBands, this.numPixels);
 		return dataFlattened.get(NDArrayIndex.indices(bandIndexes.stream().mapToLong(i -> i).toArray()), NDArrayIndex.all());
+	}
+
+	public INDArray getBandMax() {
+		return this.data.max(1, 2);
+	}
+
+	public INDArray getBandMin() {
+		return this.data.min(1, 2);
 	}
 
 
