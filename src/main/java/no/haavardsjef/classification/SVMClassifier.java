@@ -56,6 +56,7 @@ public class SVMClassifier implements IClassifier {
 		Sample[] trainingSamples = split[0];
 		Sample[] testSamples = split[1];
 
+
 		svm_model model = train(trainingSamples);
 
 		double accuracy = evaluateAccuracy(model, testSamples, numClasses);
@@ -81,21 +82,18 @@ public class SVMClassifier implements IClassifier {
 	}
 
 	private svm_model train(Sample[] data) {
+
+
 		log.info("Training SVM classifier with " + data.length + " samples");
 		long startTime = System.currentTimeMillis();
 		svm_problem trainingProblem = createProblem(data);
 
-		svm_parameter param = new svm_parameter();
-		param.svm_type = svm_parameter.C_SVC;
-		param.kernel_type = svm_parameter.RBF;
-		param.gamma = 0.5;
-		param.C = 1;
-		param.eps = 0.001;
-		param.cache_size = 100;
+		// Find the best parameters using grid search
+		svm_parameter bestParam = SVMParameterSearch.findBestParameters(trainingProblem);
 
-		svm_model model = svm.svm_train(trainingProblem, param);
+		svm_model model = svm.svm_train(trainingProblem, bestParam);
 		long endTime = System.currentTimeMillis();
-		log.info("Training took " + (endTime - startTime) / 1000 + " seconds");
+		log.info("Training took " + (endTime - startTime) + " ms");
 
 		return model;
 	}
