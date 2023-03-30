@@ -3,6 +3,9 @@ package no.haavardsjef.classification;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -70,5 +73,22 @@ public class ClassificationUtilities {
 		}
 
 		return new Sample[][]{training, testing};
+	}
+
+	public static void saveConfusionMatrixToCSV(int[][] confusionMatrix, String filePath) {
+		try (PrintWriter writer = new PrintWriter(new File(filePath))) {
+			for (int i = 0; i < confusionMatrix.length; i++) {
+				StringBuilder row = new StringBuilder();
+				for (int j = 0; j < confusionMatrix[i].length; j++) {
+					row.append(confusionMatrix[i][j]);
+					if (j < confusionMatrix[i].length - 1) {
+						row.append(",");
+					}
+				}
+				writer.println(row.toString());
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println("Error saving confusion matrix to CSV file: " + e.getMessage());
+		}
 	}
 }
