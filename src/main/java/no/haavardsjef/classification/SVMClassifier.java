@@ -85,15 +85,15 @@ public class SVMClassifier implements IClassifier {
 
 
 		log.info("Training SVM classifier with " + data.length + " samples");
-		long startTime = System.currentTimeMillis();
 		svm_problem trainingProblem = createProblem(data);
 
 		// Find the best parameters using grid search
 		svm_parameter bestParam = SVMParameterSearch.findBestParameters(trainingProblem);
 
+		long startTime = System.currentTimeMillis();
 		svm_model model = svm.svm_train(trainingProblem, bestParam);
 		long endTime = System.currentTimeMillis();
-		log.info("Training took " + (endTime - startTime) + " ms");
+		log.info("Training took " + (endTime - startTime) + " ms, excluding parameter search");
 
 		return model;
 	}
