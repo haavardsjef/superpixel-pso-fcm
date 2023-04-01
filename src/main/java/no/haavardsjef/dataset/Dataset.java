@@ -28,11 +28,13 @@ public class Dataset implements IDataset {
 	private DatasetName datasetName;
 	private SuperpixelContainer superpixelContainer;
 	private Bounds bounds;
+	private double[][] probabilityDistributions;
 
 	public Dataset(DatasetName datasetName) throws IOException {
 		this.datasetPath = "data/" + datasetName;
 		this.datasetName = datasetName;
 		this.load();
+		this.calculateProbabilityDistributions();
 	}
 
 
@@ -54,6 +56,7 @@ public class Dataset implements IDataset {
 		this.bounds = new Bounds(0, this.numBands - 1);
 		log.info("Dataset {} loaded, numBands: {}, imageWidth: {}, imageHeight: {}, numPixels: {}, numClasses: {}", this.datasetName,
 				this.numBands, this.imageWidth, this.imageHeight, this.numPixels, this.numClasses);
+
 	}
 
 	/**
@@ -160,6 +163,33 @@ public class Dataset implements IDataset {
 		return this.groundTruth.ravel().toIntVector();
 	}
 
+	public void calculateProbabilityDistributions() {
+		log.info("Calculating probability distributions for dataset {}...", this.datasetName);
+		this.probabilityDistributions = new double[this.numBands][256];
+		for (int bandIndex = 0; bandIndex < this.numBands; bandIndex++) {
+			int NUM_BINS = 256;
+			double[] r = this.getBandFlattened(bandIndex).toDoubleVector();
+
+			int[] histogram = new int[NUM_BINS];
+			double[] normalHistogram = new double[NUM_BINS];
+
+			double min = (double) this.getBand(bandIndex).minNumber();
+			double max = (double) this.getBand(bandIndex).maxNumber();
+
+			// Bin all pixels to create histogram
+			for (double p : r) {
+				int bin = (int) Math.floor((p - min) / (max - min) * (NUM_BINS - 1));
+				histogram[bin] += 1;
+			}
+
+			// Normalize histogram into probability distribution
+			for (int i = 0; i < NUM_BINS; i++) {
+				normalHistogram[i] = (double) histogram[i] / (double) (this.imageWidth * this.imageHeight);
+			}
+
+			this.probabilityDistributions[bandIndex] = normalHistogram;
+		}
+	}
 
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset(DatasetName.indian_pines);
