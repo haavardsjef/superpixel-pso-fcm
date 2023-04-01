@@ -49,8 +49,32 @@ public class ClusterRepresentatives {
 		return clusterCentroids;
 	}
 
-	public List<Integer> medianRepresentative(List<Integer> clusterCentroids) {
-		return null;
+	/**
+	 * Gets the band closest to the mean of the cluster
+	 *
+	 * @param clusterCentroids
+	 * @return the bandIndex of the bands closest to the mean of the cluster, using euclidean distance
+	 */
+	public List<Integer> meanRepresentative(List<Integer> clusterCentroids) {
+		List<Integer> representatives = new ArrayList<>();
+
+		for (List<Integer> cluster : clusters) {
+			INDArray clusterBandData = dataset.getBands(cluster);
+			INDArray mean = clusterBandData.mean(0);
+
+			int closestBand = 0;
+			double closestDistance = Double.MAX_VALUE;
+
+			for (int i = 0; i < cluster.size(); i++) {
+				double distance = mean.distance2(dataset.getBand(cluster.get(i)));
+				if (distance < closestDistance) {
+					closestBand = i;
+					closestDistance = distance;
+				}
+			}
+			representatives.add(cluster.get(closestBand));
+		}
+		return representatives;
 	}
 
 	public List<Integer> highestEntropyRepresentative(List<Integer> clusterCentroids) {
