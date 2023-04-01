@@ -169,6 +169,10 @@ public class Dataset implements IDataset {
 		return this.groundTruth.ravel().toIntVector();
 	}
 
+	public int getNumBands() {
+		return this.numBands;
+	}
+
 	public void calculateEntropies() {
 		log.info("Calculating entropies for dataset {}...", this.datasetName);
 		List<Double> entropies = new ArrayList<>();
