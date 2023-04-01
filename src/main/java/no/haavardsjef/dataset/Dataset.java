@@ -1,5 +1,6 @@
 package no.haavardsjef.dataset;
 
+import com.google.common.math.DoubleMath;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.superpixelsegmentation.SuperpixelContainer;
 import no.haavardsjef.utility.Bounds;
@@ -8,6 +9,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,10 +27,12 @@ public class Dataset implements IDataset {
 	private int imageHeight;
 	private int numPixels;
 	private int numClasses;
-	private String datasetPath;
-	private DatasetName datasetName;
+	private final String datasetPath;
+	private final DatasetName datasetName;
 	private SuperpixelContainer superpixelContainer;
 	private Bounds bounds;
+	private List<Double> entropies;
+
 	private double[][] probabilityDistributions;
 
 	public Dataset(DatasetName datasetName) throws IOException {
@@ -35,6 +40,7 @@ public class Dataset implements IDataset {
 		this.datasetName = datasetName;
 		this.load();
 		this.calculateProbabilityDistributions();
+		this.calculateEntropies();
 	}
 
 
@@ -163,6 +169,18 @@ public class Dataset implements IDataset {
 		return this.groundTruth.ravel().toIntVector();
 	}
 
+	public void calculateEntropies() {
+		log.info("Calculating entropies for dataset {}...", this.datasetName);
+		List<Double> entropies = new ArrayList<>();
+
+		for (int bandIndex = 0; bandIndex < this.numBands; bandIndex++) {
+			entropies.add(this.calculateEntropy(bandIndex));
+		}
+
+		this.entropies = entropies;
+	}
+
+
 	public void calculateProbabilityDistributions() {
 		log.info("Calculating probability distributions for dataset {}...", this.datasetName);
 		this.probabilityDistributions = new double[this.numBands][256];
@@ -191,13 +209,23 @@ public class Dataset implements IDataset {
 		}
 	}
 
+	private double calculateEntropy(int band) {
+		return -Arrays.stream(probabilityDistributions[band]).reduce(0.0, (acc, val) -> {
+			if (val == 0.0) {
+				return acc;
+			} else {
+				return acc + (val * DoubleMath.log2(val));
+			}
+		});
+	}
+
+	public List<Double> getEntropies() {
+		return this.entropies;
+	}
+
+
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset(DatasetName.indian_pines);
-//		ds.setupSuperpixelContainer();
-		int[] gt = ds.getGroundTruthFlattenedAsArray();
-
-
-		double dist = ds.euclideanDistance(0, 1);
-		double spDist = ds.euclideanDistanceSP(0, 1);
+		ds.calculateProbabilityDistributions();
 	}
 }
