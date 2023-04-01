@@ -77,9 +77,31 @@ public class ClusterRepresentatives {
 		return representatives;
 	}
 
+	/**
+	 * Gets the band with the highest entropy in the cluster
+	 *
+	 * @param clusterCentroids the cluster centroids
+	 * @return the bandIndex of the band with the highest entropy in the cluster
+	 */
 	public List<Integer> highestEntropyRepresentative(List<Integer> clusterCentroids) {
-		return null;
+		List<Integer> representatives = new ArrayList<>();
+		List<Double> entropies = dataset.getEntropies();
+		for (List<Integer> cluster : clusters) {
+			int highestEntropyBand = 0;
+			double highestEntropy = Double.MIN_VALUE;
+
+			for (int i = 0; i < cluster.size(); i++) {
+				double entropy = entropies.get(cluster.get(i));
+				if (entropy > highestEntropy) {
+					highestEntropyBand = i;
+					highestEntropy = entropy;
+				}
+			}
+			representatives.add(cluster.get(highestEntropyBand));
+		}
+		return representatives;
 	}
+
 
 	public List<Integer> highestMutualInformationRepresentative(List<Integer> clusterCentroids) {
 		return null;
