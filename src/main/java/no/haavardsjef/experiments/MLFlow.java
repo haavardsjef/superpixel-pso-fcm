@@ -14,7 +14,11 @@ public class MLFlow {
 	private String runId;
 
 	public MLFlow() {
-		MlflowClient mlflowClient = new MlflowClient(trackingUri);
+		this.mlflowClient = new MlflowClient(trackingUri);
+	}
+
+	public MLFlow(String trackingUri) {
+		this.mlflowClient = new MlflowClient(trackingUri);
 	}
 
 	/**
