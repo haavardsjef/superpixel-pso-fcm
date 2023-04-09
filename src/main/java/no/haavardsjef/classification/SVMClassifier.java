@@ -3,8 +3,9 @@ package no.haavardsjef.classification;
 import libsvm.*;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.dataset.Dataset;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class SVMClassifier implements IClassifier {
 	}
 
 
-	public void evaluate(List<Integer> selectedBands) {
+	public DescriptiveStatistics evaluate(List<Integer> selectedBands, int numClassificationRuns) {
 		log.info("Evaluating SVM classifier with selected bands: " + selectedBands);
 
 
@@ -51,17 +52,40 @@ public class SVMClassifier implements IClassifier {
 		}
 
 
-		// Shuffle and split into training and test set
-		double trainingRatio = 0.1;
-		Sample[][] split = splitSamples(samples, trainingRatio);
-		Sample[] trainingSamples = split[0];
-		Sample[] testSamples = split[1];
+		DescriptiveStatistics stats = new DescriptiveStatistics();
+		for (int i = 0; i < numClassificationRuns; i++) {
 
 
-		svm_model model = train(trainingSamples);
+			// Shuffle and split into training and test set
+			double trainingRatio = 0.1;
+			Sample[][] split = splitSamples(samples, trainingRatio);
+			Sample[] trainingSamples = split[0];
+			Sample[] testSamples = split[1];
 
-		double accuracy = evaluateAccuracy(model, testSamples, numClasses);
 
+			svm_model model = train(trainingSamples);
+
+			List<Integer>[] results = evaluateAccuracy(model, testSamples, numClasses);
+
+			List<Integer> actual = results[0];
+			List<Integer> predicted = results[1];
+
+			int correct = 0;
+			for (int j = 0; j < actual.size(); j++) {
+				if (actual.get(j) == predicted.get(j)) {
+					correct++;
+				}
+			}
+
+			double accuracy = (double) correct / actual.size();
+
+			stats.addValue(accuracy);
+
+
+		}
+
+
+		return stats;
 
 	}
 
@@ -96,16 +120,22 @@ public class SVMClassifier implements IClassifier {
 		return (int) prediction;
 	}
 
-	private static double evaluateAccuracy(svm_model model, Sample[] testSamples, int numClasses) {
+	private static List<Integer>[] evaluateAccuracy(svm_model model, Sample[] testSamples, int numClasses) {
 		log.info("Evaluating accuracy of SVM classifier with " + testSamples.length + " samples");
 		long startTime = System.currentTimeMillis();
 		int numCorrectPredictions = 0;
 		int[][] confusionMatrix = new int[numClasses][numClasses];
 
+		List<Integer> actualLabels = new ArrayList<>();
+		List<Integer> predictedLabels = new ArrayList<>();
+
 		for (Sample sample : testSamples) {
 			int trueLabel = sample.label();
 			double[] features = sample.features();
 			int predictedLabel = predict(model, features);
+
+			actualLabels.add(trueLabel);
+			predictedLabels.add(predictedLabel);
 
 			if (predictedLabel == trueLabel) {
 				numCorrectPredictions++;
@@ -122,7 +152,7 @@ public class SVMClassifier implements IClassifier {
 		log.info("Evaluation took " + (endTime - startTime) + " ms");
 		log.info("Accuracy: " + accuracy * 100 + "%");
 		log.info("Number of correct predictions: " + numCorrectPredictions, " out of " + testSamples.length);
-		return accuracy;
+		return new List[]{actualLabels, predictedLabels};
 	}
 
 	private svm_problem createProblem(Sample[] data) {
