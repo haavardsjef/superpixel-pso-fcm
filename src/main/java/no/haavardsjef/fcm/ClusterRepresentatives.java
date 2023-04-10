@@ -59,6 +59,9 @@ public class ClusterRepresentatives {
 		List<Integer> representatives = new ArrayList<>();
 
 		for (List<Integer> cluster : clusters) {
+			if (cluster.size() == 0) {
+				continue;
+			}
 			INDArray clusterBandData = dataset.getBands(cluster);
 			INDArray mean = clusterBandData.mean(0);
 
@@ -87,6 +90,9 @@ public class ClusterRepresentatives {
 		List<Integer> representatives = new ArrayList<>();
 		List<Double> entropies = dataset.getEntropies();
 		for (List<Integer> cluster : clusters) {
+			if (cluster.size() == 0) {
+				continue;
+			}
 			int highestEntropyBand = 0;
 			double highestEntropy = Double.MIN_VALUE;
 
