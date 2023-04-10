@@ -104,6 +104,10 @@ public class Dataset implements IDataset {
 		return this.numPixels;
 	}
 
+	public DatasetName getDatasetName() {
+		return datasetName;
+	}
+
 	/**
 	 * Calculates the euclidean distance between two bands, using mean of superpixels.
 	 *

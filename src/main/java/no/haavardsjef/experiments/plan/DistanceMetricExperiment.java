@@ -1,7 +1,8 @@
-package no.haavardsjef.experiments;
+package no.haavardsjef.experiments.plan;
 
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
+import no.haavardsjef.experiments.IExperiment;
 import no.haavardsjef.vizualisation.PlotLine;
 
 import java.io.IOException;
