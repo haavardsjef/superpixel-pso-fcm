@@ -1,8 +1,8 @@
-package no.haavardsjef.experiments;
+package no.haavardsjef.experiments.other;
 
 import no.haavardsjef.dataset.BenchmarkDataset;
 import no.haavardsjef.dataset.BenchmarkDatasetName;
-import no.haavardsjef.dataset.DatasetName;
+import no.haavardsjef.experiments.IExperiment;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.Particle;

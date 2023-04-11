@@ -1,16 +1,15 @@
-package no.haavardsjef.experiments;
+package no.haavardsjef.experiments.other;
 
-import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
-import no.haavardsjef.fcm.ClusterRepresentatives;
+import no.haavardsjef.experiments.IExperiment;
+import no.haavardsjef.experiments.MLFlow;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.PSOParams;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.io.IOException;
 import java.util.List;

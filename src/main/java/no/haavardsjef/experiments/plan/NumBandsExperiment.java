@@ -3,7 +3,6 @@ package no.haavardsjef.experiments.plan;
 import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
-import no.haavardsjef.experiments.ClusterRepresentativesExperiment;
 import no.haavardsjef.experiments.IExperiment;
 import no.haavardsjef.experiments.MLFlow;
 import no.haavardsjef.fcm.ClusterRepresentatives;

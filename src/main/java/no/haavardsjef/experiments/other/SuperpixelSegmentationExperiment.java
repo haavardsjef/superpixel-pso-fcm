@@ -1,7 +1,8 @@
-package no.haavardsjef.experiments;
+package no.haavardsjef.experiments.other;
 
 import boofcv.struct.image.GrayF32;
 import boofcv.struct.image.Planar;
+import no.haavardsjef.experiments.IExperiment;
 import no.haavardsjef.superpixelsegmentation.PCA_Implementation;
 import no.haavardsjef.superpixelsegmentation.SuperpixelSegmentation;
 import no.haavardsjef.utility.DataLoader;

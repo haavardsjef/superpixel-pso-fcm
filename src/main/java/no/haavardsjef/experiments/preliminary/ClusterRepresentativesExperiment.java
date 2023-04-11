@@ -1,8 +1,10 @@
-package no.haavardsjef.experiments;
+package no.haavardsjef.experiments.preliminary;
 
 import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
+import no.haavardsjef.experiments.IExperiment;
+import no.haavardsjef.experiments.MLFlow;
 import no.haavardsjef.fcm.ClusterRepresentatives;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
@@ -13,7 +15,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 public class ClusterRepresentativesExperiment implements IExperiment {
 
