@@ -12,6 +12,7 @@ import no.haavardsjef.pso.PSOParams;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
+import no.haavardsjef.utility.DistanceMeasure;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class NumBandsExperiment implements IExperiment {
 		Dataset dataset = new Dataset(DatasetName.indian_pines);
 		dataset.setupSuperpixelContainer();
 		double fuzziness = 2;
-		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness);
+		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, DistanceMeasure.PIXEL_EUCLIDEAN);
 		Bounds bounds = dataset.getBounds();
 
 		// Initialize new MLflow client to connect to local MLflow server

@@ -4,6 +4,7 @@ import com.google.common.math.DoubleMath;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.superpixelsegmentation.SuperpixelContainer;
 import no.haavardsjef.utility.Bounds;
+import no.haavardsjef.utility.DistanceMeasure;
 import no.haavardsjef.utility.HyperspectralDataLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
@@ -229,6 +230,17 @@ public class Dataset implements IDataset {
 
 	public List<Double> getEntropies() {
 		return this.entropies;
+	}
+
+	public double distance(DistanceMeasure distanceMeasure, int bandIndex1, int bandIndex2) {
+		switch (distanceMeasure) {
+			case PIXEL_EUCLIDEAN:
+				return this.euclideanDistance(bandIndex1, bandIndex2);
+			case SP_MEAN_EUCLIDEAN:
+				return this.euclideanDistanceSP(bandIndex1, bandIndex2);
+			default:
+				throw new IllegalArgumentException("Unknown distance measure: " + distanceMeasure);
+		}
 	}
 
 

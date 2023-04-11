@@ -8,6 +8,7 @@ import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
+import no.haavardsjef.utility.DistanceMeasure;
 import no.haavardsjef.vizualisation.PlotScatter;
 
 import java.io.IOException;
@@ -18,7 +19,7 @@ public class ClusteringBenchmarkExperiment implements IExperiment {
 	public void runExperiment() throws IOException {
 
 		BenchmarkDataset dataset = new BenchmarkDataset(BenchmarkDatasetName.clustering_hard);
-		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
+		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0, DistanceMeasure.PIXEL_EUCLIDEAN);
 		Bounds bounds = dataset.getBounds();
 		SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, bounds, objectiveFunction);
 		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false, true);

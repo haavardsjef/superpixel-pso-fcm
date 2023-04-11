@@ -10,6 +10,7 @@ import no.haavardsjef.pso.PSOParams;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
+import no.haavardsjef.utility.DistanceMeasure;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,7 +23,7 @@ public class ConsistencyExperiment implements IExperiment {
 	public void runExperiment() throws IOException {
 		Dataset dataset = new Dataset(DatasetName.indian_pines);
 		double fuzziness = 2.0;
-		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness);
+		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, DistanceMeasure.PIXEL_EUCLIDEAN);
 		Bounds bounds = dataset.getBounds();
 
 		// Initialize new MLflow client to connect to local MLflow server

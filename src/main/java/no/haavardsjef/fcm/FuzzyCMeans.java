@@ -5,6 +5,7 @@ import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
 import no.haavardsjef.dataset.IDataset;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
+import no.haavardsjef.utility.DistanceMeasure;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
@@ -19,16 +20,18 @@ import java.util.stream.IntStream;
 
 @Log4j2
 public class FuzzyCMeans implements IObjectiveFunction {
+	private final DistanceMeasure distanceMeasure;
 	private final IDataset dataset;
 	private final INDArray data;
 	private final double fuzziness;
 	private HashMap<String, Float> fitnessCache;
 
-	public FuzzyCMeans(IDataset dataset, double fuzziness) {
+	public FuzzyCMeans(IDataset dataset, double fuzziness, DistanceMeasure distanceMeasure) {
 		this.dataset = dataset;
 		this.data = dataset.getData();
 		this.fuzziness = fuzziness;
 		this.fitnessCache = new HashMap<>();
+		this.distanceMeasure = distanceMeasure;
 	}
 
 
@@ -81,7 +84,7 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		IntStream.range(0, numDataPoints).parallel().forEach(i -> {
 			INDArray distances = Nd4j.create(numClusters);
 			for (int j = 0; j < numClusters; j++) {
-				distances.putScalar(j, dataset.euclideanDistance(i, candidateCentroids.get(j)));
+				distances.putScalar(j, dataset.distance(this.distanceMeasure, i, candidateCentroids.get(j)));
 			}
 			INDArray distancesPow = Transforms.pow(distances.add(epsilon), -2.0 / (fuzziness - 1));
 			INDArray membershipDenominator = distancesPow.div(distancesPow.sum(0));
@@ -102,7 +105,7 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		IntStream.range(0, numDataPoints).parallel().forEach(i -> {
 			IntStream.range(0, numClusters).parallel().forEach(j -> {
 				double membership = Math.pow(candidateMembershipMatrix.getDouble(i, j), fuzziness);
-				double distance = dataset.euclideanDistance(i, candidateCentroids.get(j));
+				double distance = dataset.distance(this.distanceMeasure, i, candidateCentroids.get(j));
 				double product = membership * distance;
 				atomicArray.set(i * numClusters + j, product);
 			});
@@ -114,24 +117,6 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		}
 
 		return sum;
-	}
-
-
-	public static void main(String[] args) throws IOException {
-		Dataset ds = new Dataset(DatasetName.indian_pines);
-		double fuzziness = 2.0;
-
-		FuzzyCMeans fuzzyCMeans = new FuzzyCMeans(ds, fuzziness);
-
-
-		// Get 10 bands
-		List<Integer> bandList = new ArrayList<>();
-		for (int i = 0; i < 100; i++) {
-			bandList.add(i);
-		}
-
-		fuzzyCMeans.evaluate(bandList);
-
 	}
 
 	@Override

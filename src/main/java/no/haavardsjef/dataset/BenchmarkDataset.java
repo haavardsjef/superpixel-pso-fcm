@@ -2,6 +2,7 @@ package no.haavardsjef.dataset;
 
 import no.haavardsjef.utility.BenchmarkDataLoader;
 import no.haavardsjef.utility.Bounds;
+import no.haavardsjef.utility.DistanceMeasure;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
@@ -34,7 +35,6 @@ public class BenchmarkDataset implements IDataset {
 	}
 
 
-	@Override
 	public double euclideanDistance(int index1, int index2) {
 		INDArray data1 = this.data.get(NDArrayIndex.point(index1), NDArrayIndex.all());
 		INDArray data2 = this.data.get(NDArrayIndex.point(index2), NDArrayIndex.all());
@@ -49,6 +49,16 @@ public class BenchmarkDataset implements IDataset {
 	@Override
 	public Bounds getBounds() {
 		return this.bounds;
+	}
+
+	@Override
+	public double distance(DistanceMeasure distanceMeasure, int index1, int index2) {
+		switch (distanceMeasure) {
+			case PIXEL_EUCLIDEAN:
+				return this.euclideanDistance(index1, index2);
+			default:
+				throw new IllegalArgumentException("Unknown distance measure: " + distanceMeasure);
+		}
 	}
 
 	public double[][] getDataAsArray() {
