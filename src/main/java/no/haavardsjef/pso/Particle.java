@@ -58,6 +58,12 @@ public class Particle {
 	public void updateVelocity(float[] global_best_position, float w, float c1, float c2) {
 		for (int i = 0; i < numDimensions; i++) {
 			this.velocity[i] = w * this.velocity[i] + c1 * (float) Math.random() * (this.bestPosition[i] - this.position[i]) + c2 * (float) Math.random() * (global_best_position[i] - this.position[i]);
+			double maxVelocityFraction = 0.1;
+			if (this.velocity[i] > (bounds.upper() - bounds.lower()) * maxVelocityFraction) {
+				this.velocity[i] = (float) ((bounds.upper() - bounds.lower()) * maxVelocityFraction);
+			} else if (this.velocity[i] < -(bounds.upper() - bounds.lower()) * maxVelocityFraction) {
+				this.velocity[i] = (float) (-(bounds.upper() - bounds.lower()) * maxVelocityFraction);
+			}
 		}
 	}
 
@@ -75,7 +81,8 @@ public class Particle {
 	public void initializeRandomly() {
 		for (int i = 0; i < numDimensions; i++) {
 			this.position[i] = (float) Math.random() * (bounds.upper() - bounds.lower()) + bounds.lower();
-			this.velocity[i] = (float) Math.random();
+			double velocityFraction = 0.2;
+			this.velocity[i] = (float) ((float) (-1.0f + 2 * Math.random()) * (bounds.upper() - bounds.lower()) * velocityFraction);
 		}
 	}
 
