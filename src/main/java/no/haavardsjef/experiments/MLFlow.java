@@ -1,5 +1,6 @@
 package no.haavardsjef.experiments;
 
+import no.haavardsjef.pso.PSOParams;
 import org.mlflow.api.proto.Service;
 import org.mlflow.tracking.MlflowClient;
 
@@ -8,7 +9,7 @@ import java.util.Optional;
 public class MLFlow {
 
 	private final String trackingUri = "http://localhost:5000";
-	private MlflowClient mlflowClient;
+	private final MlflowClient mlflowClient;
 	private Optional<String> experimentId;
 	private boolean activeRun = false;
 	private String runId;
@@ -41,7 +42,7 @@ public class MLFlow {
 	 * @param runName The name of the run to start
 	 */
 	public void startRun(String runName) {
-		Service.RunInfo runInfo = this.mlflowClient.createRun(String.valueOf(this.experimentId.get()));
+		Service.RunInfo runInfo = this.mlflowClient.createRun(this.experimentId.get());
 		String runId = runInfo.getRunId();
 
 		// Set the run name
@@ -85,6 +86,16 @@ public class MLFlow {
 		this.mlflowClient.setTerminated(runId, Service.RunStatus.FINISHED);
 		this.activeRun = false;
 		this.runId = null;
+	}
+
+	public void logPSOParams(PSOParams params) {
+		this.logParam("numParticles", String.valueOf(params.numParticles));
+		this.logParam("numIterations", String.valueOf(params.numIterations));
+		this.logParam("w", String.valueOf(params.w));
+		this.logParam("c1", String.valueOf(params.c1));
+		this.logParam("c2", String.valueOf(params.c2));
+		this.logParam("numBands", String.valueOf(params.numBands));
+
 	}
 
 
