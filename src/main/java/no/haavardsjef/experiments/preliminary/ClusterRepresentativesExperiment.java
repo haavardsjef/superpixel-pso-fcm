@@ -8,6 +8,7 @@ import no.haavardsjef.experiments.MLFlow;
 import no.haavardsjef.fcm.utility.ClusterRepresentatives;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
+import no.haavardsjef.pso.PSOParams;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
 import no.haavardsjef.utility.Bounds;
@@ -36,16 +37,12 @@ public class ClusterRepresentativesExperiment implements IExperiment {
 
 			long startTime = System.currentTimeMillis();
 			int numberOfBandsToSelect = i;
-			int numParticles = 200;
-			int numIterations = 100;
-			float w = 0.5f;
-			float c1 = 0.5f;
-			float c2 = 0.2f;
+			PSOParams params = new PSOParams(numberOfBandsToSelect);
 			int numClassificationRuns = 10;
 
 			// PSO-FCM to select cluster centers
-			SwarmPopulation swarmPopulation = new SwarmPopulation(numParticles, numberOfBandsToSelect, bounds, objectiveFunction);
-			Particle solution = swarmPopulation.optimize(numIterations, w, c1, c2, false, true);
+			SwarmPopulation swarmPopulation = new SwarmPopulation(params.numParticles, numberOfBandsToSelect, bounds, objectiveFunction);
+			Particle solution = swarmPopulation.optimize(params.numIterations, params.w, params.c1, params.c2, false, true);
 
 			List<Integer> clusterCentroids = solution.getDiscretePositionSorted();
 			long endTime = System.currentTimeMillis();
@@ -57,16 +54,11 @@ public class ClusterRepresentativesExperiment implements IExperiment {
 				String runName = "method_" + method + "_numBands_" + numberOfBandsToSelect;
 				mlFlow.startRun(runName);
 
-				mlFlow.logParam("numBands", String.valueOf(numberOfBandsToSelect));
 				mlFlow.logParam("method", String.valueOf(method));
 
 				// Log parameters
+				mlFlow.logPSOParams(params);
 				mlFlow.logParam("clusterCentroids", clusterCentroids.toString());
-				mlFlow.logParam("numParticles", String.valueOf(numParticles));
-				mlFlow.logParam("numIterations", String.valueOf(numIterations));
-				mlFlow.logParam("w", String.valueOf(w));
-				mlFlow.logParam("c1", String.valueOf(c1));
-				mlFlow.logParam("c2", String.valueOf(c2));
 				mlFlow.logParam("numClassificationRuns", String.valueOf(numClassificationRuns));
 				mlFlow.logParam("optimizationDurationSeconds", String.valueOf(duration));
 
