@@ -19,7 +19,7 @@ public class SwarmPopulation {
 	public int numDimensions;
 	public float[] globalBestPosition;
 	public float globalBestFitness;
-	private Bounds bounds;
+	private final Bounds bounds;
 
 	public IObjectiveFunction objectiveFunction;
 	private Particle solution;
@@ -42,10 +42,12 @@ public class SwarmPopulation {
 	}
 
 	public Particle optimize(int numIterations, float w, float c1, float c2, boolean plot) {
+		System.out.println("Finding solution with " + numDimensions + " cluster centers.");
 		AtomicInteger iterationsSinceImprovement = new AtomicInteger();
 		long startTime = System.nanoTime();
 		List<Double> avgFitness = new ArrayList<Double>();
 		for (int i = 0; i < numIterations; i++) {
+			System.out.println("Iteration: " + i + " / " + numIterations + " \r");
 			iterationsSinceImprovement.getAndIncrement();
 
 			if (iterationsSinceImprovement.get() > 10) {
@@ -53,8 +55,6 @@ public class SwarmPopulation {
 				break;
 			}
 
-
-			System.out.println("Iteration: " + i);
 			if (plot && this.numDimensions == 2) {
 				Visualizations.plotSwarm(this.particles, i, this.bounds);
 			}
@@ -68,7 +68,6 @@ public class SwarmPopulation {
 					iterationsSinceImprovement.set(0);
 					globalBestFitness = particle.getFitness();
 					globalBestPosition = particle.getPosition().clone();
-					this.solution = particle;
 				}
 				return particle.getFitness();
 			}).reduce(0f, Float::sum);
@@ -90,6 +89,7 @@ public class SwarmPopulation {
 
 		System.out.println("Global best fitness: " + globalBestFitness);
 		System.out.println("Global best position: " + Arrays.toString(globalBestPosition));
+		this.solution = new Particle(globalBestPosition, this.bounds, this.objectiveFunction);
 		return solution;
 	}
 }

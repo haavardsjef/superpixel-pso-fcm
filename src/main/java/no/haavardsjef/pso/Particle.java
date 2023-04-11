@@ -10,7 +10,7 @@ public class Particle {
 	private int numDimensions;
 
 
-	private float[] position;
+	private final float[] position;
 	private float[] velocity;
 	private float fitness;
 	private float[] bestPosition;
@@ -27,6 +27,12 @@ public class Particle {
 		this.bestPosition = new float[numDimensions];
 		this.bestFitness = Float.POSITIVE_INFINITY;
 		// In our case, all dimensions have the same bounds.
+		this.bounds = bounds;
+		this.objectiveFunction = objectiveFunction;
+	}
+
+	public Particle(float[] position, Bounds bounds, IObjectiveFunction objectiveFunction) {
+		this.position = position;
 		this.bounds = bounds;
 		this.objectiveFunction = objectiveFunction;
 	}
