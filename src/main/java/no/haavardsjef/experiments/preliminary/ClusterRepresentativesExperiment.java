@@ -5,7 +5,7 @@ import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
 import no.haavardsjef.experiments.IExperiment;
 import no.haavardsjef.experiments.MLFlow;
-import no.haavardsjef.fcm.ClusterRepresentatives;
+import no.haavardsjef.fcm.utility.ClusterRepresentatives;
 import no.haavardsjef.fcm.FuzzyCMeans;
 import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.Particle;

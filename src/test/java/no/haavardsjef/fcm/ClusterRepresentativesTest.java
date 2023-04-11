@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import lombok.extern.log4j.Log4j2;
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
+import no.haavardsjef.fcm.utility.ClusterRepresentatives;
 
 import java.io.IOException;
 import java.util.List;

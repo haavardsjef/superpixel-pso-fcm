@@ -1,4 +1,4 @@
-package no.haavardsjef.fcm;
+package no.haavardsjef.fcm.utility;
 
 import no.haavardsjef.dataset.Dataset;
 import org.nd4j.linalg.api.ndarray.INDArray;
