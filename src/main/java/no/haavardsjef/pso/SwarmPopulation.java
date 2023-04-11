@@ -41,7 +41,7 @@ public class SwarmPopulation {
 		}
 	}
 
-	public Particle optimize(int numIterations, float w, float c1, float c2, boolean plot) {
+	public Particle optimize(int numIterations, float w, float c1, float c2, boolean plot, boolean earlyStopping) {
 		System.out.println("Finding solution with " + numDimensions + " cluster centers.");
 		AtomicInteger iterationsSinceImprovement = new AtomicInteger();
 		long startTime = System.nanoTime();
@@ -50,7 +50,7 @@ public class SwarmPopulation {
 			System.out.println("Iteration: " + i + " / " + numIterations + " \r");
 			iterationsSinceImprovement.getAndIncrement();
 
-			if (iterationsSinceImprovement.get() > 10) {
+			if (iterationsSinceImprovement.get() > 10 && earlyStopping) {
 				log.info("No improvement in 10 iterations. Stopping optimization.");
 				break;
 			}

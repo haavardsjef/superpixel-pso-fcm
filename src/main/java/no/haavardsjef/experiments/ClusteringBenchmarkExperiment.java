@@ -21,7 +21,7 @@ public class ClusteringBenchmarkExperiment implements IExperiment {
 		IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, 2.0);
 		Bounds bounds = dataset.getBounds();
 		SwarmPopulation swarmPopulation = new SwarmPopulation(50, 10, bounds, objectiveFunction);
-		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false);
+		Particle solution = swarmPopulation.optimize(50, 0.5f, 0.5f, 0.2f, false, true);
 
 
 		List<Integer> clusterCenterIndexes = solution.getDiscretePositionSorted();

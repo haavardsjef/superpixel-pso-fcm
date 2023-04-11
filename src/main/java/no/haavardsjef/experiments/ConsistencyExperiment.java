@@ -47,7 +47,7 @@ public class ConsistencyExperiment implements IExperiment {
 
 			// PSO-FCM to select cluster centers
 			SwarmPopulation swarmPopulation = new SwarmPopulation(numParticles, numberOfBandsToSelect, bounds, objectiveFunction);
-			Particle solution = swarmPopulation.optimize(numIterations, w, c1, c2, false);
+			Particle solution = swarmPopulation.optimize(numIterations, w, c1, c2, false, true);
 
 			long endTime = System.currentTimeMillis();
 			long duration = (endTime - startTime) / 1000;
