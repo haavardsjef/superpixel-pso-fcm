@@ -52,7 +52,9 @@ public class SVMClassifier implements IClassifier {
 		}
 
 
-		ClassificationResult classificationResult = new ClassificationResult();
+		// Create classification result
+		// Using numClasses - 1 because the background class is not included in the classification result
+		ClassificationResult classificationResult = new ClassificationResult(numClasses - 1);
 
 
 		// Run classification runs

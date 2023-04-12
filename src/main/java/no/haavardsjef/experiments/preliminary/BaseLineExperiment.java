@@ -27,10 +27,15 @@ public class BaseLineExperiment implements IExperiment {
 
 		SVMClassifier svmClassifier = new SVMClassifier(dataset);
 		ClassificationResult result = svmClassifier.evaluate(selectedBands, 20);
-		DescriptiveStatistics stats = result.getOverallAccuracy();
+		DescriptiveStatistics OA = result.getOverallAccuracy();
+		DescriptiveStatistics AOA = result.getAverageOverallAccuracy();
 
-		log.info("Mean: " + stats.getMean());
-		log.info("Standard deviation: " + stats.getStandardDeviation());
+		log.info("Overall accuracy: " + OA.getMean());
+		log.info("Overall accuracy standard deviation: " + OA.getStandardDeviation());
+
+		log.info("Average overall accuracy: " + AOA.getMean());
+		log.info("Average overall accuracy standard deviation: " + AOA.getStandardDeviation());
+
 
 	}
 
