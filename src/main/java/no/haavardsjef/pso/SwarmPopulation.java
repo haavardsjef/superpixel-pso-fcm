@@ -20,6 +20,7 @@ public class SwarmPopulation {
 	public float[] globalBestPosition;
 	public float globalBestFitness;
 	private final Bounds bounds;
+	public int numIterationsRan;
 
 	public IObjectiveFunction objectiveFunction;
 	private Particle solution;
@@ -74,6 +75,7 @@ public class SwarmPopulation {
 			avgFitness.add((double) (totalFitness / this.numParticles));
 			System.out.println("Global best fitness after iteration " + i + ": " + globalBestFitness);
 			System.out.println("Global best position after iteration " + i + ": " + Arrays.toString(globalBestPosition));
+			this.numIterationsRan = i + 1;
 		}
 		if (plot && this.numDimensions == 2) {
 			Visualizations.plotSwarm(this.particles, numIterations, this.bounds);

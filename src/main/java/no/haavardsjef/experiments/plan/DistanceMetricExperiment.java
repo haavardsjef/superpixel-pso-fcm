@@ -70,6 +70,7 @@ public class DistanceMetricExperiment implements IExperiment {
 				mlFlow.logPSOParams(params);
 				mlFlow.logParam("NumClassificationRuns", String.valueOf(numClassificationRuns));
 				mlFlow.logParam("clusterCentroids", clusterCentroids.toString());
+				mlFlow.logParam("numIterationsRan", String.valueOf(swarmPopulation.numIterationsRan);
 
 				ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
 				cr.hardClusterBands(clusterCentroids);
