@@ -24,7 +24,7 @@ public class FuzzyCMeans implements IObjectiveFunction {
 	private final IDataset dataset;
 	private final INDArray data;
 	private final double fuzziness;
-	private HashMap<String, Float> fitnessCache;
+	private final HashMap<String, Float> fitnessCache;
 
 	public FuzzyCMeans(IDataset dataset, double fuzziness, DistanceMeasure distanceMeasure) {
 		this.dataset = dataset;
@@ -125,7 +125,7 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		float result = 0.0f;
 		// Check if we have already evaluated this solution
 		if (this.fitnessCache.containsKey(candidateSolution.toString())) {
-			log.info("Found solution in cache. Returning cached fitness value.");
+//			log.info("Found solution in cache. Returning cached fitness value.");
 			result = this.fitnessCache.get(candidateSolution.toString());
 		} else {
 			result = (float) this.objectiveFunction(candidateSolution);
@@ -136,7 +136,7 @@ public class FuzzyCMeans implements IObjectiveFunction {
 
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
-		log.info("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + result + " in " + elapsedTime + "ms");
+//		log.info("Evaluated solution with cluster centers: " + Arrays.toString(candidateSolution.toArray()) + " with fitness: " + result + " in " + elapsedTime + "ms");
 		return result;
 	}
 }
