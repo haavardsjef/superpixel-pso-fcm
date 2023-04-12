@@ -1,5 +1,6 @@
 package no.haavardsjef.experiments.plan;
 
+import no.haavardsjef.classification.ClassificationResult;
 import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
@@ -89,7 +90,8 @@ public class NumBandsExperiment implements IExperiment {
 
 				// Log metrics
 				SVMClassifier svmClassifier = new SVMClassifier(dataset);
-				DescriptiveStatistics stats = svmClassifier.evaluate(selectedBands, numClassificationRuns);
+				ClassificationResult result = svmClassifier.evaluate(selectedBands, numClassificationRuns);
+				DescriptiveStatistics stats = result.getOverallAccuracy();
 				mlFlow.logMetric("accuracy", stats.getMean());
 				mlFlow.logMetric("std", stats.getStandardDeviation());
 

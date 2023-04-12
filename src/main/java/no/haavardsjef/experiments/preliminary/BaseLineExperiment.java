@@ -1,6 +1,7 @@
 package no.haavardsjef.experiments.preliminary;
 
 import lombok.extern.log4j.Log4j2;
+import no.haavardsjef.classification.ClassificationResult;
 import no.haavardsjef.classification.SVMClassifier;
 import no.haavardsjef.dataset.Dataset;
 import no.haavardsjef.dataset.DatasetName;
@@ -25,7 +26,8 @@ public class BaseLineExperiment implements IExperiment {
 		List<Integer> selectedBands = IntStream.range(b.lower(), b.upper()).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
 		SVMClassifier svmClassifier = new SVMClassifier(dataset);
-		DescriptiveStatistics stats = svmClassifier.evaluate(selectedBands, 20);
+		ClassificationResult result = svmClassifier.evaluate(selectedBands, 20);
+		DescriptiveStatistics stats = result.getOverallAccuracy();
 
 		log.info("Mean: " + stats.getMean());
 		log.info("Standard deviation: " + stats.getStandardDeviation());

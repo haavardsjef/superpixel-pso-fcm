@@ -28,7 +28,7 @@ public class SVMClassifier implements IClassifier {
 	}
 
 
-	public DescriptiveStatistics evaluate(List<Integer> selectedBands, int numClassificationRuns) {
+	public ClassificationResult evaluate(List<Integer> selectedBands, int numClassificationRuns) {
 		log.info("Evaluating SVM classifier with selected bands: " + selectedBands);
 
 
@@ -52,7 +52,10 @@ public class SVMClassifier implements IClassifier {
 		}
 
 
-		DescriptiveStatistics stats = new DescriptiveStatistics();
+		ClassificationResult classificationResult = new ClassificationResult();
+
+
+		// Run classification runs
 		for (int i = 0; i < numClassificationRuns; i++) {
 
 
@@ -65,27 +68,13 @@ public class SVMClassifier implements IClassifier {
 
 			svm_model model = train(trainingSamples);
 
-			List<Integer>[] results = evaluateAccuracy(model, testSamples, numClasses);
-
-			List<Integer> actual = results[0];
-			List<Integer> predicted = results[1];
-
-			int correct = 0;
-			for (int j = 0; j < actual.size(); j++) {
-				if (actual.get(j) == predicted.get(j)) {
-					correct++;
-				}
-			}
-
-			double accuracy = (double) correct / actual.size();
-
-			stats.addValue(accuracy);
-
+			List<Prediction> predictions = evaluateAccuracy(model, testSamples, numClasses);
+			classificationResult.addRun(predictions);
 
 		}
 
 
-		return stats;
+		return classificationResult;
 
 	}
 
@@ -120,22 +109,23 @@ public class SVMClassifier implements IClassifier {
 		return (int) prediction;
 	}
 
-	private static List<Integer>[] evaluateAccuracy(svm_model model, Sample[] testSamples, int numClasses) {
+	private static List<Prediction> evaluateAccuracy(svm_model model, Sample[] testSamples, int numClasses) {
 		log.info("Evaluating accuracy of SVM classifier with " + testSamples.length + " samples");
 		long startTime = System.currentTimeMillis();
 		int numCorrectPredictions = 0;
 		int[][] confusionMatrix = new int[numClasses][numClasses];
 
-		List<Integer> actualLabels = new ArrayList<>();
-		List<Integer> predictedLabels = new ArrayList<>();
+
+		List<Prediction> predictions = new ArrayList<>();
 
 		for (Sample sample : testSamples) {
 			int trueLabel = sample.label();
 			double[] features = sample.features();
 			int predictedLabel = predict(model, features);
 
-			actualLabels.add(trueLabel);
-			predictedLabels.add(predictedLabel);
+			// Record true label and prediction
+			Prediction prediction = new Prediction(sample.pixelIndex(), trueLabel, predictedLabel);
+			predictions.add(prediction);
 
 			if (predictedLabel == trueLabel) {
 				numCorrectPredictions++;
@@ -152,7 +142,7 @@ public class SVMClassifier implements IClassifier {
 		log.info("Evaluation took " + (endTime - startTime) + " ms");
 		log.info("Accuracy: " + accuracy * 100 + "%");
 		log.info("Number of correct predictions: " + numCorrectPredictions, " out of " + testSamples.length);
-		return new List[]{actualLabels, predictedLabels};
+		return predictions;
 	}
 
 	private svm_problem createProblem(Sample[] data) {
