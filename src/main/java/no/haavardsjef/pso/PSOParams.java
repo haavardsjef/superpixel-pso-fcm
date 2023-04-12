@@ -3,9 +3,9 @@ package no.haavardsjef.pso;
 public class PSOParams {
 	public final int numParticles;
 	public final int numIterations;
-	public final float w;
-	public final float c1;
-	public final float c2;
+	public float w;
+	public float c1;
+	public float c2;
 	public final int numBands;
 
 	public PSOParams(int numBands) {
