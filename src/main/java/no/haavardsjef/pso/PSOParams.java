@@ -9,8 +9,8 @@ public class PSOParams {
 	public final int numBands;
 
 	public PSOParams(int numBands) {
-		this.numParticles = 100;
-		this.numIterations = 100;
+		this.numParticles = 200;
+		this.numIterations = 200;
 		this.w = 0.5f;
 		this.c1 = 0.5f;
 		this.c2 = 0.2f;

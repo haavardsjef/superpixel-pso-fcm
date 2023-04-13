@@ -51,8 +51,8 @@ public class SwarmPopulation {
 			System.out.println("Iteration: " + i + " / " + numIterations + " \r");
 			iterationsSinceImprovement.getAndIncrement();
 
-			if (iterationsSinceImprovement.get() > 20 && earlyStopping) {
-				log.info("No improvement in 20 iterations. Stopping optimization.");
+			if (iterationsSinceImprovement.get() > 15 && earlyStopping) {
+				log.info("No improvement in 15 iterations. Stopping optimization.");
 				break;
 			}
 
