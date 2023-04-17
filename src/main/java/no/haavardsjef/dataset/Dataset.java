@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * A container for a dataset. Contains the data, groundtruth, and other metadata.
@@ -232,12 +233,92 @@ public class Dataset implements IDataset {
 		return this.entropies;
 	}
 
+	/**
+	 * Calculates the KL-divergence distance between two bands, using all pixels.
+	 *
+	 * @param bandIndex1 The index of the first band.
+	 * @param bandIndex2 The index of the second band.
+	 * @return The KL-divergence distance between the two bands.
+	 */
+	public double KlDivergenceDistance(int bandIndex1, int bandIndex2) {
+		double[] probDistBand1 = this.probabilityDistributions[bandIndex1];
+        double[] probDistBand2 = this.probabilityDistributions[bandIndex1];
+
+		double symKLDivergence = this.calculateKlDivergence(probDistBand1, probDistBand2) + calculateKlDivergence(probDistBand2, probDistBand1);
+		return symKLDivergence;  
+	}
+
+	/**
+	 * Calculates the KL-divergence distance between two bands, using superpixel means.
+	 *
+	 * @param bandIndex1 The index of the first band.
+	 * @param bandIndex2 The index of the second band.
+	 * @return The KL-divergence distance between the two bands.
+	 */
+	public double KlDivergenceDistanceSP(int bandIndex1, int bandIndex2) {
+	
+		double[] probDistBand1 = this.calculateProbabilityDistributions_SP(bandIndex1);
+        double[] probDistBand2 = this.calculateProbabilityDistributions_SP(bandIndex2);
+		
+		double symKLDivergence_SP = this.calculateKlDivergence(probDistBand1, probDistBand2) + calculateKlDivergence(probDistBand2, probDistBand1);
+		return symKLDivergence_SP;
+	}
+	
+	private double calculateKlDivergence(double[] probDistBand1, double[] probDistBand2) {
+        
+		int NUM_BINS = 256;
+
+        double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
+            if (probDistBand1[i] == 0.0 || probDistBand2[i] == 0.0) {
+                return 0;
+            }
+            return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
+        }).sum();
+        return kl;
+    }
+    //probability distribution using superpixel-mean of band
+	private double[] calculateProbabilityDistributions_SP(int bandIndex) {
+		if (this.superpixelContainer == null) {
+			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		}
+		INDArray bandData = this.superpixelContainer.getSuperpixelMeans(bandIndex);
+		
+		
+		int NUM_BINS = 256;
+		double[] r = bandData.toDoubleVector();
+
+		int[] histogram = new int[NUM_BINS];
+		double[] normalHistogram = new double[NUM_BINS];
+
+		double min = (double) bandData.minNumber();
+		double max = (double) bandData.maxNumber();
+
+		// Bin all superpixels to create histogram
+		for (double p : r) {
+			int bin = (int) Math.floor((p - min) / (max - min) * (NUM_BINS - 1));
+			histogram[bin] += 1;
+		}
+
+		// Normalize histogram into probability distribution
+		for (int i = 0; i < NUM_BINS; i++) {
+			normalHistogram[i] = (double) histogram[i] / (double) (this.getNumSuperpixels());
+		}
+
+		return normalHistogram;
+		
+	}
+
+
 	public double distance(DistanceMeasure distanceMeasure, int bandIndex1, int bandIndex2) {
 		switch (distanceMeasure) {
 			case PIXEL_EUCLIDEAN:
 				return this.euclideanDistance(bandIndex1, bandIndex2);
 			case SP_MEAN_EUCLIDEAN:
 				return this.euclideanDistanceSP(bandIndex1, bandIndex2);
+			case PIXEL_KL_DIVERGENCE:
+				return this.KlDivergenceDistance(bandIndex1, bandIndex2);
+			case SP_MEAN_KL_DIVERGENCE:
+				return this.KlDivergenceDistance(bandIndex1, bandIndex2);
 			default:
 				throw new IllegalArgumentException("Unknown distance measure: " + distanceMeasure);
 		}
