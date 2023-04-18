@@ -13,6 +13,7 @@ import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.pso.PSOParams;
 import no.haavardsjef.pso.Particle;
 import no.haavardsjef.pso.SwarmPopulation;
+
 import no.haavardsjef.utility.Bounds;
 import no.haavardsjef.utility.DistanceMeasure;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -29,30 +30,34 @@ public class DistanceMetricExperiment implements IExperiment {
 		MLFlow mlFlow = new MLFlow();
 
 		// Create a new experiment
-		String experimentName = "distance-metric-experiment";
+		String experimentName = "sofie-distance-metric-experiment";
 		mlFlow.initializeExperiment(experimentName);
 
 
 		Dataset dataset = new Dataset(DatasetName.indian_pines);
 		dataset.setupSuperpixelContainer();
-
+     
 		// Parameters that are the constant
 		double fuzziness = 2.0;
 		int numClassificationRuns = 10;
 		Bounds bounds = dataset.getBounds();
 
 		// For every distance measure
-		for (DistanceMeasure distanceMeasure : DistanceMeasure.values()) {
-
+		//for (DistanceMeasure distanceMeasure : DistanceMeasure.values()) {
+			
+		    DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_KL_DIVERGENCE;
+			if (distanceMeasure == DistanceMeasure.SP_MEAN_KL_DIVERGENCE) {
+				dataset.calculateProbabilityDistributions_SP();
+			}
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
-			for (int i = 1; i < 30; i += 2) {
-
+			for (int i = 10; i < 20; i += 2) {
+                
 				int numberOfBandsToSelect = i;
 				// Start a new run
 				String runName = distanceMeasure + "_numBands_" + i;
 				mlFlow.startRun(runName);
 
-
+				
 				long startTime = System.currentTimeMillis();
 				PSOParams params = new PSOParams(numberOfBandsToSelect);
 				params.w = 0.75f;
@@ -65,19 +70,22 @@ public class DistanceMetricExperiment implements IExperiment {
 				Particle solution = swarmPopulation.optimize(params.numIterations, params.w, params.c1, params.c2, false, true);
 				List<Integer> clusterCentroids = solution.getDiscretePositionSorted();
 
-				// Log parameters
+				//Log parameters
 				mlFlow.logParam("distanceMeasure", distanceMeasure.toString());
+				mlFlow.logParam("fuzziness", String.valueOf(fuzziness));
+				mlFlow.logParam("dataset", dataset.getDatasetName().toString());
 				mlFlow.logPSOParams(params);
 				mlFlow.logParam("NumClassificationRuns", String.valueOf(numClassificationRuns));
 				mlFlow.logParam("clusterCentroids", clusterCentroids.toString());
 				mlFlow.logParam("numIterationsRan", String.valueOf(swarmPopulation.numIterationsRan));
-
+				mlFlow.logParam("numSuperPixels", String.valueOf(dataset.getNumSuperpixels()));
+				
 				ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
 				cr.hardClusterBands(clusterCentroids);
 
-				List<Integer> selectedBands = cr.meanRepresentative(clusterCentroids);
+				List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCentroids);
 				mlFlow.logParam("selectedBands", selectedBands.toString());
-				mlFlow.logParam("CRMethod", "meanRepresentative");
+				mlFlow.logParam("CRMethod", "highestEntropyRepresentative");
 
 				// Evaluate using SVMClassifier
 				SVMClassifier svmClassifier = new SVMClassifier(dataset);
@@ -103,7 +111,7 @@ public class DistanceMetricExperiment implements IExperiment {
 		}
 
 
-	}
+//	}
 
 	public static void main(String[] args) throws IOException {
 		DistanceMetricExperiment distanceMetricExperiment = new DistanceMetricExperiment();
