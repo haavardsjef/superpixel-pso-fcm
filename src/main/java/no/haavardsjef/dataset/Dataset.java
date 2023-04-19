@@ -269,6 +269,9 @@ public class Dataset implements IDataset {
 		int NUM_BINS = 256;
   
         double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
+			if (probDistBand1[i] == 0.0 || probDistBand2[i] == 0.0) {
+                return 0;
+            }
             return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
         }).sum();
         return kl;
