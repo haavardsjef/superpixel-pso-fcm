@@ -244,11 +244,7 @@ public class Dataset implements IDataset {
 	 * @return The KL-divergence distance between the two bands.
 	 */
 	public double KlDivergenceDistance(int bandIndex1, int bandIndex2) {
-		double[] probDistBand1 = this.probabilityDistributions[bandIndex1];
-        double[] probDistBand2 = this.probabilityDistributions[bandIndex1];
-
-		double symKLDivergence = this.calculateKlDivergence(probDistBand1, probDistBand2) + calculateKlDivergence(probDistBand2, probDistBand1);
-		return symKLDivergence;  
+		return this.calculateKlDivergence(bandIndex1, bandIndex2) + calculateKlDivergence(bandIndex2, bandIndex1); 
 	}
 
 	/**
@@ -259,33 +255,54 @@ public class Dataset implements IDataset {
 	 * @return The KL-divergence distance between the two bands.
 	 */
 	public double KlDivergenceDistanceSP(int bandIndex1, int bandIndex2) {
+		return this.calculateKlDivergenceSP(bandIndex1, bandIndex2) + calculateKlDivergenceSP(bandIndex2, bandIndex1);
+		
+	}
+	
+	private double calculateKlDivergence(int bandIndex1, int bandIndex2) {
+        
+		double[] probDistBand1 = this.probabilityDistributions[bandIndex1];
+        double[] probDistBand2 = this.probabilityDistributions[bandIndex2];
+
+		int NUM_BINS = 256;
+  
+        double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
+            return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
+        }).sum();
+        return kl;
+    }
+
+	private double calculateKlDivergenceSP(int bandIndex1, int bandIndex2) {
 		if (this.probabilityDistributionsSP.length == 0 ){
 			throw new IllegalStateException("ProbabilityDistributions for SP means is not calculated.");
 		}
-	
 		double[] probDistBand1 = this.probabilityDistributionsSP[bandIndex1];
         double[] probDistBand2 = this.probabilityDistributionsSP[bandIndex2];
-		
-		double symKLDivergence_SP = this.calculateKlDivergence(probDistBand1, probDistBand2) + calculateKlDivergence(probDistBand2, probDistBand1);
-		return symKLDivergence_SP;
-	}
-	
-	private double calculateKlDivergence(double[] probDistBand1, double[] probDistBand2) {
-        
-		int NUM_BINS = 256;
+
+		int NUM_BINS = this.getNumSuperpixels();
+
 
         double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
             if (probDistBand1[i] == 0.0 || probDistBand2[i] == 0.0) {
+			   if(probDistBand1[i] != 0.0 ) {
+					return 100*probDistBand1[i];
+				}
                 return 0;
             }
             return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
         }).sum();
         return kl;
     }
-    //probability distribution using superpixel-mean of band
+
+    /**
+	 * Calculates probability distributions, using superpixel means.
+	 *
+	 */
 	public void calculateProbabilityDistributions_SP() {
 		log.info("Calculating probability distributions superpixelmeans for dataset {}...", this.datasetName);
-		this.probabilityDistributionsSP = new double[this.numBands][256];
+
+		int numSP = this.getNumSuperpixels();
+		this.probabilityDistributionsSP = new double[this.numBands][numSP];
 
 		if (this.superpixelContainer == null) {
 			throw new IllegalStateException("SuperpixelContainer is not initialized.");
@@ -295,7 +312,7 @@ public class Dataset implements IDataset {
 			
 			INDArray bandData = this.superpixelContainer.getSuperpixelMeans(bandIndex);
 		
-			int NUM_BINS = 256;
+			int NUM_BINS = numSP;
 			double[] r = bandData.toDoubleVector();
 
 			int[] histogram = new int[NUM_BINS];
