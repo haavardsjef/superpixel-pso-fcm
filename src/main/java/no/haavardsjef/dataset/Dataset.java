@@ -38,6 +38,8 @@ public class Dataset implements IDataset {
 	private double[][] probabilityDistributions;
 	private double[][] probabilityDistributionsSP;
 
+	private double[][] correlationCoefficientsSP;
+
 
 	public Dataset(DatasetName datasetName) throws IOException {
 		this.datasetPath = "data/" + datasetName;
@@ -336,6 +338,53 @@ public class Dataset implements IDataset {
 		}
 	}
 
+	/**
+	 * Calculates the Correlation Coefficients between two bands, using superpixel means.
+	 *
+	 * @param bandIndex1 The index of the first band.
+	 * @param bandIndex2 The index of the second band.
+	 * @return The Correlation Coefficient between the two bands.
+	 */
+	public double CorrelationCoefficientDistance_SP(int bandindex1,int bandindex2){
+		return this.correlationCoefficientsSP[bandindex1][bandindex2];
+	}
+    
+	/**
+	 * Calculates CorrelationCoefficients, using superpixel means.
+	 *
+	 */
+    public void calculateCorrelationCoefficients_SP() {
+        double[][] correlationCoefficients = new double[this.numBands][this.numBands];
+		double[] bandAverage = IntStream.range(0, this.numBands).mapToDouble(b -> Arrays.stream(this.probabilityDistributionsSP[b]).average().getAsDouble()).toArray();
+        
+		for (int i = 0; i < this.numBands; i++) {
+            for (int j = 0; j < this.numBands; j++) {
+                if (i == j) {
+                    correlationCoefficients[i][j] = 0;
+                    continue;
+                }
+                
+                double[] SP_MEAN_dataBandi = this.superpixelContainer.getSuperpixelMeans(i).toDoubleVector();
+                double[] SP_MEAN_dataBandj = this.superpixelContainer.getSuperpixelMeans(j).toDoubleVector();
+
+                long sumAbove = 0;
+                long sumI = 0;
+                long sumJ = 0;
+
+				int numSuperPixels = this.getNumSuperpixels();
+                for (int x = 0; x < numSuperPixels; x++) {
+                    double i_SP_MEAN = SP_MEAN_dataBandi[x] - bandAverage[i];
+                    double j_SP_MEAN = SP_MEAN_dataBandj[x] - bandAverage[j];
+                    sumAbove += i_SP_MEAN * j_SP_MEAN;
+                    sumI += Math.pow(i_SP_MEAN, 2);
+                    sumJ += Math.pow(j_SP_MEAN, 2);
+                }
+
+                correlationCoefficients[i][j] = sumAbove / (Math.sqrt(sumI) * Math.sqrt(sumJ));
+            }
+        }
+        this.correlationCoefficientsSP = correlationCoefficients;
+    }
 
 	public double distance(DistanceMeasure distanceMeasure, int bandIndex1, int bandIndex2) {
 		switch (distanceMeasure) {
@@ -347,6 +396,8 @@ public class Dataset implements IDataset {
 				return this.KlDivergenceDistance(bandIndex1, bandIndex2);
 			case SP_MEAN_KL_DIVERGENCE:
 				return this.KlDivergenceDistanceSP(bandIndex1, bandIndex2);
+			case SP_MEAN_COR_COF:
+				return this.CorrelationCoefficientDistance_SP(bandIndex1, bandIndex2);
 			default:
 				throw new IllegalArgumentException("Unknown distance measure: " + distanceMeasure);
 		}

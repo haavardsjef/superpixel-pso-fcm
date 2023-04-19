@@ -36,7 +36,9 @@ public class DistanceMetricExperiment implements IExperiment {
 
 		Dataset dataset = new Dataset(DatasetName.indian_pines);
 		dataset.setupSuperpixelContainer();
-     
+		dataset.calculateProbabilityDistributions_SP();
+		dataset.calculateCorrelationCoefficients_SP(); 
+		
 		// Parameters that are the constant
 		double fuzziness = 2.0;
 		int numClassificationRuns = 10;
@@ -45,12 +47,10 @@ public class DistanceMetricExperiment implements IExperiment {
 		// For every distance measure
 		//for (DistanceMeasure distanceMeasure : DistanceMeasure.values()) {
 			
-		    DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_KL_DIVERGENCE;
-			if (distanceMeasure == DistanceMeasure.SP_MEAN_KL_DIVERGENCE) {
-				dataset.calculateProbabilityDistributions_SP();
-			}
+		    DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_COR_COF;
+
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
-			for (int i = 10; i < 20; i += 2) {
+			for (int i = 4; i < 21; i += 2) {
                 
 				int numberOfBandsToSelect = i;
 				// Start a new run

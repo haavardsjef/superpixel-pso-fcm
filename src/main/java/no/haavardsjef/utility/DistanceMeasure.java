@@ -5,5 +5,5 @@ public enum DistanceMeasure {
 	SP_MEAN_EUCLIDEAN,
 	PIXEL_KL_DIVERGENCE,
 	SP_MEAN_KL_DIVERGENCE,
-
+	SP_MEAN_COR_COF,
 }
