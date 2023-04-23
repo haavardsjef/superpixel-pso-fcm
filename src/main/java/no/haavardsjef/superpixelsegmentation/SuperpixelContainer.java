@@ -3,13 +3,15 @@ package no.haavardsjef.superpixelsegmentation;
 import boofcv.struct.image.GrayF32;
 import boofcv.struct.image.Planar;
 import lombok.extern.log4j.Log4j2;
+import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.BooleanIndexing;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.indexing.conditions.Conditions;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -69,11 +71,10 @@ public class SuperpixelContainer {
 		// Start timer
 		long startTime = System.currentTimeMillis();
 		this.superpixelMeans = Nd4j.zeros((int) this.data.shape()[0], this.numSuperpixels);
-		IntStream.range(0, (int) this.data.shape()[0]).parallel().forEach(band -> calculateMean(band));
+		IntStream.range(0, (int) this.data.shape()[0]).forEach(band -> calculateMeanUsingMap(band));
 		// Stop timer
 		long endTime = System.currentTimeMillis();
 		log.info("Superpixel means calculated in {} ms", endTime - startTime);
-
 	}
 
 	/**
@@ -81,22 +82,30 @@ public class SuperpixelContainer {
 	 *
 	 * @param bandIndex The index of the band to calculate the mean for.
 	 */
-	private void calculateMean(int bandIndex) {
+	private void calculateMeanUsingMap(int bandIndex) {
 		INDArray bandData = this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
-		IntStream.range(0, this.numSuperpixels).forEach(superpixelIndex -> {
-			INDArray result = bandData.mul(this.superpixelMap.eq(superpixelIndex));
+		int numRows = bandData.rows();
+		int numCols = bandData.columns();
 
-			// Create a binary mask for non-zero elements
-			INDArray nonZeroMask = result.dup();
-			BooleanIndexing.replaceWhere(nonZeroMask, 1, Conditions.notEquals(0));
-			BooleanIndexing.replaceWhere(nonZeroMask, 0, Conditions.equals(0));
+		Map<Integer, List<Double>> superpixelPixelValues = new HashMap<>();
 
-			double mean = result.sumNumber().doubleValue() / nonZeroMask.sumNumber().intValue();
-			// TODO: Also calculate the median.
+		for (int row = 0; row < numRows; row++) {
+			for (int col = 0; col < numCols; col++) {
+				int superpixelIndex = this.superpixelMap.getInt(row, col);
+				double pixelValue = bandData.getDouble(row, col);
+
+				superpixelPixelValues.computeIfAbsent(superpixelIndex, k -> new ArrayList<>()).add(pixelValue);
+			}
+		}
+
+		for (Map.Entry<Integer, List<Double>> entry : superpixelPixelValues.entrySet()) {
+			int superpixelIndex = entry.getKey();
+			List<Double> pixelValues = entry.getValue();
+			double mean = pixelValues.stream().mapToDouble(Double::doubleValue).average().orElse(0);
 			this.superpixelMeans.putScalar(bandIndex, superpixelIndex, mean);
-
-		});
+		}
 	}
+
 
 	/**
 	 * Get the mean value for each superpixel in a given band.
@@ -111,4 +120,6 @@ public class SuperpixelContainer {
 	public int getNumSuperpixels() {
 		return numSuperpixels;
 	}
+
+
 }
