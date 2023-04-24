@@ -124,5 +124,21 @@ public class SuperpixelContainer {
 		return numSuperpixels;
 	}
 
+	public void saveSPMap(String fileName) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+			for (int row = 0; row < this.superpixelMap.rows(); row++) {
+				for (int col = 0; col < this.superpixelMap.columns(); col++) {
+					writer.write(String.valueOf(this.superpixelMap.getDouble(row, col)));
+					if (col < this.superpixelMap.columns() - 1) {
+						writer.write(",");
+					}
+				}
+				writer.newLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 }

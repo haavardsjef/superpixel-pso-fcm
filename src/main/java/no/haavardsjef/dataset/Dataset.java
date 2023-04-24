@@ -247,6 +247,13 @@ public class Dataset implements IDataset {
 		}
 	}
 
+	public void saveSuperpixelMap(String path) throws IOException {
+		if (this.superpixelContainer == null) {
+			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		}
+		this.superpixelContainer.saveSPMap(path);
+	}
+
 
 	public static void main(String[] args) throws IOException {
 		Dataset ds = new Dataset(DatasetName.indian_pines);
