@@ -34,10 +34,12 @@ public class DistanceMetricExperiment implements IExperiment {
 		mlFlow.initializeExperiment(experimentName);
 
 
-		Dataset dataset = new Dataset(DatasetName.indian_pines);
+		Dataset dataset = new Dataset(DatasetName.Salinas);
 		dataset.setupSuperpixelContainer();
-		dataset.calculateProbabilityDistributions_SP();
-		dataset.calculateCorrelationCoefficients_SP(); 
+		//dataset.calculateProbabilityDistributionsSPmean();
+		//dataset.calculateCorrelationCoefficients_SP();
+		dataset.calculateProbabilityDistributionsSP();  
+        dataset.calculateKlDivergencesSuperpixelLevel();
 		
 		// Parameters that are the constant
 		double fuzziness = 2.0;
@@ -47,10 +49,10 @@ public class DistanceMetricExperiment implements IExperiment {
 		// For every distance measure
 		//for (DistanceMeasure distanceMeasure : DistanceMeasure.values()) {
 			
-		    DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_COR_COF;
+		    DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_EUCLIDEAN;
 
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
-			for (int i = 4; i < 21; i += 2) {
+			for (int i = 20; i < 21; i += 2) {
                 
 				int numberOfBandsToSelect = i;
 				// Start a new run

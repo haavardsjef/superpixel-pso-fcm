@@ -36,10 +36,11 @@ public class Dataset implements IDataset {
 	private List<Double> entropies;
 
 	private double[][] probabilityDistributions;
-	private double[][] probabilityDistributionsSP;
 
-	private double[][] correlationCoefficientsSP;
-
+	private double[][] probabilityDistributionsSPmean;
+	private double[][] correlationCoefficientsSPmean;
+    private double[][][] probabilityDistributionsSP;
+	private double[][] KlDivergencesSuperpixelLevel;
 
 	public Dataset(DatasetName datasetName) throws IOException {
 		this.datasetPath = "data/" + datasetName;
@@ -114,6 +115,9 @@ public class Dataset implements IDataset {
 		return datasetName;
 	}
 
+	public INDArray getSuperPixelMap(){
+		return superpixelContainer.getSuperixelmap();
+	}
 
 	/**
 	 * Calculates the euclidean distance between two bands, using mean of superpixels.
@@ -257,8 +261,18 @@ public class Dataset implements IDataset {
 	 * @return The KL-divergence distance between the two bands.
 	 */
 	public double KlDivergenceDistanceSP(int bandIndex1, int bandIndex2) {
-		return this.calculateKlDivergenceSP(bandIndex1, bandIndex2) + calculateKlDivergenceSP(bandIndex2, bandIndex1);
+		return this.calculateKlDivergenceSPmean(bandIndex1, bandIndex2) + calculateKlDivergenceSPmean(bandIndex2, bandIndex1);
 		
+	}
+	/**
+	 * Calculates the SuperpixelLevel KlDivergence-L1norm Distances distance between two bands, using mean of superpixels.
+	 *
+	 * @param bandIndex1 The index of the first band.
+	 * @param bandIndex2 The index of the second band.
+	 * @return SuperpixelLevel KlDivergence-L1norm distance between two bands.
+	 */
+	private double KlDivergencesSuperpixelLevelL1normDistance(int bandIndex1, int bandIndex2){
+		return this.KlDivergencesSuperpixelLevel[bandIndex1][bandIndex2];
 	}
 	
 	private double calculateKlDivergence(int bandIndex1, int bandIndex2) {
@@ -277,22 +291,58 @@ public class Dataset implements IDataset {
         return kl;
     }
 
+
+	/**
+	 * Calculates the SuperpixelLevel KlDivergence-L1norm distances for all bands.
+	 *
+	 */
+	public void calculateKlDivergencesSuperpixelLevel() {
+		this.KlDivergencesSuperpixelLevel = new double[this.numBands][this.numBands];
+		for (int bandindex1 = 0; bandindex1 < this.numBands; bandindex1++){
+			for(int bandindex2 = 0; bandindex2 < this.numBands; bandindex2++){
+				this.KlDivergencesSuperpixelLevel[bandindex1][bandindex2] = calculateKlDivergenceSP(bandindex1,bandindex2);
+		}
+	}
+	}
+
 	private double calculateKlDivergenceSP(int bandIndex1, int bandIndex2) {
+
+		double[][] probDistBand1_SP = this.probabilityDistributionsSP[bandIndex1];
+        double[][] probDistBand2_SP= this.probabilityDistributionsSP[bandIndex2];
+
+		int NUM_BINS = 256;
+		double totalDistance = 0.0;
+
+        for(int superpixelIndex = 0; superpixelIndex < this.getNumSuperpixels(); superpixelIndex++){
+			double[] probDistBand1_P = probDistBand1_SP[superpixelIndex];
+			double[] probDistBand2_P = probDistBand2_SP[superpixelIndex];
+		
+        	double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
+
+					
+				if (probDistBand2_P[i] == 0.0){
+					probDistBand2_P[i] = 0.00000001;}
+				
+				return probDistBand1_P[i] * DoubleMath.log2(probDistBand1_P[i] / probDistBand2_P[i]);
+        }).sum();
+           totalDistance = totalDistance + Math.abs(kl);	
+	    }
+		return totalDistance;
+    }
+
+	private double calculateKlDivergenceSPmean(int bandIndex1, int bandIndex2) {
 		if (this.probabilityDistributionsSP.length == 0 ){
 			throw new IllegalStateException("ProbabilityDistributions for SP means is not calculated.");
 		}
-		double[] probDistBand1 = this.probabilityDistributionsSP[bandIndex1];
-        double[] probDistBand2 = this.probabilityDistributionsSP[bandIndex2];
+		double[] probDistBand1 = this.probabilityDistributionsSPmean[bandIndex1];
+        double[] probDistBand2 = this.probabilityDistributionsSPmean[bandIndex2];
 
 		int NUM_BINS = this.getNumSuperpixels();
 
 
         double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
-            if (probDistBand1[i] == 0.0 || probDistBand2[i] == 0.0) {
-			   if(probDistBand1[i] != 0.0 ) {
-					return 100*probDistBand1[i];
-				}
-                return 0;
+            if ( probDistBand2[i] == 0.0) {
+                return probDistBand2[i] = 0.0000001;
             }
             return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
         }).sum();
@@ -303,11 +353,11 @@ public class Dataset implements IDataset {
 	 * Calculates probability distributions, using superpixel means.
 	 *
 	 */
-	public void calculateProbabilityDistributions_SP() {
+	public void calculateProbabilityDistributionsSPmean() {
 		log.info("Calculating probability distributions superpixelmeans for dataset {}...", this.datasetName);
 
-		int numSP = this.getNumSuperpixels();
-		this.probabilityDistributionsSP = new double[this.numBands][numSP];
+		int NUM_BINS = 256;
+		this.probabilityDistributionsSPmean = new double[this.numBands][NUM_BINS];
 
 		if (this.superpixelContainer == null) {
 			throw new IllegalStateException("SuperpixelContainer is not initialized.");
@@ -317,7 +367,6 @@ public class Dataset implements IDataset {
 			
 			INDArray bandData = this.superpixelContainer.getSuperpixelMeans(bandIndex);
 		
-			int NUM_BINS = numSP;
 			double[] r = bandData.toDoubleVector();
 
 			int[] histogram = new int[NUM_BINS];
@@ -334,10 +383,60 @@ public class Dataset implements IDataset {
 		
 			// Normalize histogram into probability distribution
 			for (int i = 0; i < NUM_BINS; i++) {
-				normalHistogram[i] = (double) histogram[i] / (double) (this.getNumSuperpixels());
+				normalHistogram[i] = (double) histogram[i] / (double) (imageHeight*imageWidth);
 			}
 
-			this.probabilityDistributionsSP[bandIndex] = normalHistogram;
+			this.probabilityDistributionsSPmean[bandIndex] = normalHistogram;
+		}
+	}
+
+	/**
+	 * Calculates probability distributions, for each superpixel.
+	 *
+	 */
+	public void calculateProbabilityDistributionsSP() {
+		log.info("Calculating probability distributions for for each superpixel for dataset {}...", this.datasetName);
+
+		int NUM_BINS = 256;
+		this.probabilityDistributionsSP = new double[this.numBands][this.getNumSuperpixels()][NUM_BINS];
+
+		INDArray SP_map = superpixelContainer.getSuperixelmap();
+		if (this.superpixelContainer == null) {
+			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		}
+	
+		for (int bandIndex = 0; bandIndex < this.numBands; bandIndex++){
+
+			double [][] probabilityDistributionSP = new double[this.getNumSuperpixels()][NUM_BINS];
+			INDArray bandData = this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
+			IntStream.range(0, this.getNumSuperpixels()).forEach(superpixelIndex -> {
+				
+				INDArray result = bandData.mul(SP_map.eq(superpixelIndex));
+				
+				INDArray superpixelBandData = result.dup().reshape(numPixels);
+				
+				double[] r = superpixelBandData.toDoubleVector();
+
+				int[] histogram = new int[NUM_BINS];
+				double[] normalHistogram = new double[NUM_BINS];
+
+				double min = (double) superpixelBandData.minNumber();
+				double max = (double) superpixelBandData.maxNumber();
+
+			   // Bin all superpixels to create histogram
+				for (double p : r) {
+					int bin = (int) Math.floor((p - min) / (max - min) * (NUM_BINS - 1));
+					histogram[bin] += 1;
+				}
+		
+				// Normalize histogram into probability distribution
+				for (int i = 0; i < NUM_BINS; i++) {
+					normalHistogram[i] = (double) histogram[i] / (double) (imageHeight*imageWidth);
+				}
+
+				probabilityDistributionSP[superpixelIndex] = normalHistogram;
+			});
+			this.probabilityDistributionsSP[bandIndex] = probabilityDistributionSP;
 		}
 	}
 
@@ -349,7 +448,7 @@ public class Dataset implements IDataset {
 	 * @return The Correlation Coefficient between the two bands.
 	 */
 	public double CorrelationCoefficientDistance_SP(int bandindex1,int bandindex2){
-		return this.correlationCoefficientsSP[bandindex1][bandindex2];
+		return this.correlationCoefficientsSPmean[bandindex1][bandindex2];
 	}
     
 	/**
@@ -358,7 +457,7 @@ public class Dataset implements IDataset {
 	 */
     public void calculateCorrelationCoefficients_SP() {
         double[][] correlationCoefficients = new double[this.numBands][this.numBands];
-		double[] bandAverage = IntStream.range(0, this.numBands).mapToDouble(b -> Arrays.stream(this.probabilityDistributionsSP[b]).average().getAsDouble()).toArray();
+		double[] bandAverage = IntStream.range(0, this.numBands).mapToDouble(b -> Arrays.stream(this.probabilityDistributionsSPmean[b]).average().getAsDouble()).toArray();
         
 		for (int i = 0; i < this.numBands; i++) {
             for (int j = 0; j < this.numBands; j++) {
@@ -386,8 +485,9 @@ public class Dataset implements IDataset {
                 correlationCoefficients[i][j] = sumAbove / (Math.sqrt(sumI) * Math.sqrt(sumJ));
             }
         }
-        this.correlationCoefficientsSP = correlationCoefficients;
+        this.correlationCoefficientsSPmean = correlationCoefficients;
     }
+
 
 	public double distance(DistanceMeasure distanceMeasure, int bandIndex1, int bandIndex2) {
 		switch (distanceMeasure) {
@@ -401,6 +501,8 @@ public class Dataset implements IDataset {
 				return this.KlDivergenceDistanceSP(bandIndex1, bandIndex2);
 			case SP_MEAN_COR_COF:
 				return this.CorrelationCoefficientDistance_SP(bandIndex1, bandIndex2);
+			case SP_LEVEL_KL_DIVERGENCE_L1NORM:
+				return this.KlDivergencesSuperpixelLevelL1normDistance(bandIndex1, bandIndex2);
 			default:
 				throw new IllegalArgumentException("Unknown distance measure: " + distanceMeasure);
 		}

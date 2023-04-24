@@ -25,11 +25,16 @@ public class ExampleExperiment implements IExperiment {
     public void runExperiment() throws IOException {
         Dataset dataset = new Dataset(DatasetName.indian_pines); // Choose dataset
         dataset.setupSuperpixelContainer(); // Setup superpixel container, needs to be done if using superpixels
-        DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_EUCLIDEAN; // Choose distance measure
+        dataset.calculateProbabilityDistributionsSPmean();
+       // dataset.calculateCorrelationCoefficients_SP();
+        dataset.calculateProbabilityDistributionsSP();
+        dataset.calculateKlDivergencesSuperpixelLevel();
+        
+        DistanceMeasure distanceMeasure = DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM; // Choose distance measure
         Bounds bounds = dataset.getBounds(); // Get bounds for PSO
         IObjectiveFunction fcm = new FuzzyCMeans(dataset, 2.0, distanceMeasure);
 
-        int numberOfBandsToSelect = 2;
+        int numberOfBandsToSelect = 10;
         PSOParams params = new PSOParams(numberOfBandsToSelect); // Using default pso parameters
 
         // PSO-FCM to select cluster centers
@@ -43,7 +48,7 @@ public class ExampleExperiment implements IExperiment {
         List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCenters); // In this example, select with highest entropy
 
         // SVM Classification
-        int numClassificationRuns = 10;
+        int numClassificationRuns = 6;
         SVMClassifier classifier = new SVMClassifier(dataset);
         ClassificationResult result = classifier.evaluate(selectedBands, numClassificationRuns);
 

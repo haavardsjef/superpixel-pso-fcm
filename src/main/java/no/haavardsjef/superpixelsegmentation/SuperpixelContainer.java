@@ -111,4 +111,9 @@ public class SuperpixelContainer {
 	public int getNumSuperpixels() {
 		return numSuperpixels;
 	}
+
+	public INDArray getSuperixelmap(){
+		return this.superpixelMap;
+	}
+
 }
