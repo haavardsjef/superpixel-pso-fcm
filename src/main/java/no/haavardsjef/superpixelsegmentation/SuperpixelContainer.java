@@ -11,6 +11,9 @@ import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.indexing.conditions.Conditions;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -22,20 +25,20 @@ import java.util.stream.IntStream;
 public class SuperpixelContainer {
 
 	private INDArray superpixelMap;
-	private INDArray data;
+	private final INDArray data;
 	private INDArray superpixelMeans; // Shape: [numBands, numSuperpixels]
 	private int numSuperpixels;
 
-	public SuperpixelContainer(INDArray data) {
+	public SuperpixelContainer(INDArray data, int numSuperpixels, float spatialWeight) {
 		this.data = data;
-		this.generateSuperpixelMap();
+		this.generateSuperpixelMap(numSuperpixels, spatialWeight);
 	}
 
 
 	/**
 	 * Converts data into planar image, and then uses boofCV to generate a superpixel map.
 	 */
-	private void generateSuperpixelMap() {
+	private void generateSuperpixelMap(int numSuperpixels, float spatialWeight) {
 		log.info("Generating superpixel map");
 		int numBands = (int) this.data.shape()[0];
 		int imageWidth = (int) this.data.shape()[2];
@@ -54,7 +57,7 @@ public class SuperpixelContainer {
 		}
 		log.info("Planar image created");
 		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
-		int[] superpixelMap = superpixelSegmentation.segment(image, false);
+		int[] superpixelMap = superpixelSegmentation.segment(image, true, numSuperpixels, spatialWeight);
 		this.superpixelMap = Nd4j.createFromArray(superpixelMap).reshape(imageHeight, imageWidth);
 		this.numSuperpixels = Arrays.stream(superpixelMap).max().getAsInt() + 1;
 		log.info("Superpixel map created");

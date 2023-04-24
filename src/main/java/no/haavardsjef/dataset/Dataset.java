@@ -69,8 +69,12 @@ public class Dataset implements IDataset {
 	/**
 	 * Initializes the superpixel container. Must be called before using any superpixel related methods.
 	 */
+	public void setupSuperpixelContainer(int numSuperpixels, float spatialWeight) {
+		this.superpixelContainer = new SuperpixelContainer(this.data, numSuperpixels, spatialWeight);
+	}
+
 	public void setupSuperpixelContainer() {
-		this.superpixelContainer = new SuperpixelContainer(this.data);
+		this.superpixelContainer = new SuperpixelContainer(this.data, 100, 200f);
 	}
 
 	/**
