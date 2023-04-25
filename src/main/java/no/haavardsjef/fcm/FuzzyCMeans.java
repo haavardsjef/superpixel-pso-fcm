@@ -25,12 +25,14 @@ public class FuzzyCMeans implements IObjectiveFunction {
 	private final INDArray data;
 	private final double fuzziness;
 	private final HashMap<String, Float> fitnessCache;
+	private final HashMap<String, Double> distanceCache;
 
 	public FuzzyCMeans(IDataset dataset, double fuzziness, DistanceMeasure distanceMeasure) {
 		this.dataset = dataset;
 		this.data = dataset.getData();
 		this.fuzziness = fuzziness;
 		this.fitnessCache = new HashMap<>();
+		this.distanceCache = new HashMap<>();
 		this.distanceMeasure = distanceMeasure;
 	}
 
@@ -84,7 +86,16 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		IntStream.range(0, numDataPoints).parallel().forEach(i -> {
 			INDArray distances = Nd4j.create(numClusters);
 			for (int j = 0; j < numClusters; j++) {
-				distances.putScalar(j, dataset.distance(this.distanceMeasure, i, candidateCentroids.get(j)));
+				// check if distance is cached
+				String key = i + "," + candidateCentroids.get(j);
+				if (distanceCache.containsKey(key)) {
+					distances.putScalar(j, distanceCache.get(key));
+					continue;
+				} else {
+					double distance = dataset.distance(this.distanceMeasure, i, candidateCentroids.get(j));
+					distanceCache.put(key, distance);
+					distances.putScalar(j, distance);
+				}
 			}
 			INDArray distancesPow = Transforms.pow(distances.add(epsilon), -2.0 / (fuzziness - 1));
 			INDArray membershipDenominator = distancesPow.div(distancesPow.sum(0));
