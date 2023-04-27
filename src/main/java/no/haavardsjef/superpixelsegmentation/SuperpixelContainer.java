@@ -57,7 +57,7 @@ public class SuperpixelContainer {
 		}
 		log.info("Planar image created");
 		SuperpixelSegmentation superpixelSegmentation = new SuperpixelSegmentation();
-		int[] superpixelMap = superpixelSegmentation.segment(image, true, numSuperpixels, spatialWeight);
+		int[] superpixelMap = superpixelSegmentation.segment(image, false, numSuperpixels, spatialWeight);
 		this.superpixelMap = Nd4j.createFromArray(superpixelMap).reshape(imageHeight, imageWidth);
 		this.numSuperpixels = Arrays.stream(superpixelMap).max().getAsInt() + 1;
 		log.info("Superpixel map created");
@@ -138,6 +138,16 @@ public class SuperpixelContainer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public int getSuperpixelIndex(int row, int col) {
+		return this.superpixelMap.getInt(row, col);
+	}
+
+	public int getSuperpixelIndex(int pixelIndex) {
+		int row = pixelIndex / this.superpixelMap.columns();
+		int col = pixelIndex % this.superpixelMap.columns();
+		return this.superpixelMap.getInt(row, col);
 	}
 
 
