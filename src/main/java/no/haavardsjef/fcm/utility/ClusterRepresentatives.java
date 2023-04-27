@@ -108,6 +108,71 @@ public class ClusterRepresentatives {
 		return representatives;
 	}
 
+	/**
+	 * A hybrid approach that combines the highest entropy and central tendency methods is designed to balance the benefits of both
+	 * methods while addressing their individual limitations. This approach aims to select a representative band that both maximizes
+	 * information content and closely resembles other bands in the cluster.
+	 * To compute the weighted sum we first must compute and standardize the entropy and central tendency criterion to the same range.
+	 *
+	 * @param clusterCentroids
+	 * @return
+	 */
+	public List<Integer> weightedSumRepresentative(List<Integer> clusterCentroids) {
+		List<Integer> representatives = new ArrayList<>();
+		List<Double> entropies = dataset.getEntropies();
+		for (List<Integer> cluster : clusters) {
+			if (cluster.size() == 0) {
+				continue;
+			}
+			// Calculate mean
+			INDArray clusterBandData = dataset.getBands(cluster);
+			INDArray mean = clusterBandData.mean(0);
+
+			double highestWeightedSum = Double.NEGATIVE_INFINITY;
+			int bestBand = -1;
+
+			List<Double> clusterEntropies = new ArrayList<>();
+			List<Double> clusterDistances = new ArrayList<>();
+
+			// Get entropies and distances
+			for (int i = 0; i < cluster.size(); i++) {
+				double entropy = entropies.get(cluster.get(i));
+				clusterEntropies.add(entropy);
+				double distance = mean.distance2(dataset.getBand(cluster.get(i)));
+				clusterDistances.add(distance);
+			}
+
+			// Normalize entropies and distances
+			double maxEntropy = clusterEntropies.stream().mapToDouble(Double::doubleValue).max().getAsDouble();
+			double minEntropy = clusterEntropies.stream().mapToDouble(Double::doubleValue).min().getAsDouble();
+			double maxDistance = clusterDistances.stream().mapToDouble(Double::doubleValue).max().getAsDouble();
+			double minDistance = clusterDistances.stream().mapToDouble(Double::doubleValue).min().getAsDouble();
+
+			List<Double> normalizedEntropies = new ArrayList<>();
+			List<Double> normalizedDistances = new ArrayList<>();
+
+			for (int i = 0; i < cluster.size(); i++) {
+				double normalizedEntropy = (clusterEntropies.get(i) - minEntropy) / (maxEntropy - minEntropy);
+				normalizedEntropies.add(normalizedEntropy);
+				double normalizedDistance = (clusterDistances.get(i) - minDistance) / (maxDistance - minDistance);
+				normalizedDistances.add(normalizedDistance);
+			}
+
+			// Calculate weighted sum
+			for (int i = 0; i < cluster.size(); i++) {
+				double weightedSum = 1.0 * normalizedEntropies.get(i) - 0.5 * normalizedDistances.get(i);
+				if (weightedSum > highestWeightedSum) {
+					highestWeightedSum = weightedSum;
+					bestBand = i;
+				}
+			}
+
+			representatives.add(cluster.get(bestBand));
+
+		}
+		return representatives;
+	}
+
 
 	public List<Integer> highestMutualInformationRepresentative(List<Integer> clusterCentroids) {
 		return null;
