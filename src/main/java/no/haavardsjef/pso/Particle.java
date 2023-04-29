@@ -4,7 +4,9 @@ import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.utility.Bounds;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Particle {
 	private int numDimensions;
@@ -76,9 +78,7 @@ public class Particle {
 				this.position[i] = bounds.upper();
 			}
 		}
-		while (checkDuplicates()) {
-			repairPosition();
-		}
+		repairPosition();
 	}
 
 	/**
@@ -89,46 +89,18 @@ public class Particle {
 	 * randomly selected new band indices.
 	 */
 	private void repairPosition() {
-		float[] pos = this.position;
-
-		// Round pos
-		for (int i = 0; i < pos.length; i++) {
-			pos[i] = Math.round(pos[i]);
-		}
-
-		// Replace any duplicates with random values
-		for (int i = 0; i < pos.length; i++) {
-			for (int j = i + 1; j < pos.length; j++) {
-				if (pos[i] == pos[j]) {
-					pos[j] = (float) Math.random() * (bounds.upper() - bounds.lower()) + bounds.lower();
-				}
-			}
-		}
-		this.position = pos;
-	}
-
-	/**
-	 * Check for duplicates in the rounded position array.
-	 *
-	 * @return true if there are duplicates, false otherwise
-	 */
-	private boolean checkDuplicates() {
-		float[] pos = this.position;
-
-		// Round pos
-		for (int i = 0; i < pos.length; i++) {
-			pos[i] = Math.round(pos[i]);
-		}
-
+		Set<Float> uniqueValues = new HashSet<>();
 		for (int i = 0; i < this.position.length; i++) {
-			for (int j = i + 1; j < this.position.length; j++) {
-				if (this.position[i] == this.position[j]) {
-					return true;
-				}
+			float roundedValue = Math.round(this.position[i]);
+			// If the value is already in the set, generate a new random value
+			while (!uniqueValues.add(roundedValue)) {
+				roundedValue = (float) Math.random() * (bounds.upper() - bounds.lower()) + bounds.lower();
+				this.position[i] = roundedValue;
 			}
 		}
-		return false;
 	}
+
+
 
 	public void initializeRandomly() {
 		for (int i = 0; i < numDimensions; i++) {
