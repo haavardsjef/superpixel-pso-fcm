@@ -4,6 +4,7 @@ import no.haavardsjef.dataset.Dataset;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -114,10 +115,9 @@ public class ClusterRepresentatives {
 	 * information content and closely resembles other bands in the cluster.
 	 * To compute the weighted sum we first must compute and standardize the entropy and central tendency criterion to the same range.
 	 *
-	 * @param clusterCentroids
 	 * @return
 	 */
-	public List<Integer> weightedSumRepresentative(List<Integer> clusterCentroids) {
+	public List<Integer> weightedSumRepresentative() {
 		List<Integer> representatives = new ArrayList<>();
 		List<Double> entropies = dataset.getEntropies();
 		for (List<Integer> cluster : clusters) {
@@ -170,6 +170,73 @@ public class ClusterRepresentatives {
 			representatives.add(cluster.get(bestBand));
 
 		}
+		return representatives;
+	}
+
+
+	/**
+	 * The hybrid ranking criterion for selecting a representative band combines the entropy and central tendency criteria
+	 * to achieve a balance between high information content and close resemblance to the central tendency of other bands
+	 * in the cluster. In this approach, each band is ranked based on their entropy and distance to the mean, which serves
+	 * as the chosen central tendency measure. The overall rank is computed by summing the entropy-based rank and the
+	 * distance-to-the-mean-based rank. The representative band is then determined as the one with the lowest overall rank,
+	 * providing a good balance between information content and representativeness. If there is a tie, the band with the
+	 * highest entropy is selected.
+	 *
+	 * @return
+	 */
+	public List<Integer> rankingHybridRepresentative() {
+		List<Integer> representatives = new ArrayList<>();
+		List<Double> entropies = dataset.getEntropies();
+
+		for (List<Integer> cluster : clusters) {
+			if (cluster.size() == 0) {
+				continue;
+			}
+
+			// Calculate mean
+			INDArray clusterBandData = dataset.getBands(cluster);
+			INDArray mean = clusterBandData.mean(0);
+
+			int bestBand = -1;
+			int bestRank = Integer.MAX_VALUE;
+			int bestEntropyRank = Integer.MAX_VALUE;
+
+			List<Integer> entropyRanks = new ArrayList<>();
+			List<Integer> distanceRanks = new ArrayList<>();
+
+			// Calculate entropy ranks and distance ranks
+			cluster.sort(Comparator.comparingDouble(entropies::get));
+			for (int i = 0; i < cluster.size(); i++) {
+				entropyRanks.add(i, cluster.get(i));
+			}
+
+			cluster.sort(Comparator.comparingDouble(band -> mean.distance2(dataset.getBand(band))));
+			for (int i = 0; i < cluster.size(); i++) {
+				distanceRanks.add(i, cluster.get(i));
+			}
+
+			// Calculate overall rank and find the representative band
+			for (int band : cluster) {
+				int entropyRank = entropyRanks.indexOf(band);
+				int distanceRank = distanceRanks.indexOf(band);
+				int overallRank = entropyRank + distanceRank;
+
+				if (overallRank < bestRank) {
+					bestRank = overallRank;
+					bestBand = band;
+					bestEntropyRank = entropyRank;
+				} else if (overallRank == bestRank) {
+					if (entropyRank < bestEntropyRank) {
+						bestBand = band;
+						bestEntropyRank = entropyRank;
+					}
+				}
+			}
+
+			representatives.add(bestBand);
+		}
+
 		return representatives;
 	}
 
