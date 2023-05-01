@@ -34,34 +34,30 @@ public class DistanceMetricExperiment implements IExperiment {
 		mlFlow.initializeExperiment(experimentName);
 
 
-		Dataset dataset = new Dataset(DatasetName.Salinas);
-		dataset.setupSuperpixelContainer();
-		//dataset.calculateProbabilityDistributionsSPmean();
-		//dataset.calculateCorrelationCoefficients_SP();
-		dataset.calculateProbabilityDistributionsSP();  
-        dataset.calculateKlDivergencesSuperpixelLevel();
-		
-		mlFlow.initializeExperiment(experimentName);
-
-
 		Dataset dataset = new Dataset(DatasetName.indian_pines);
+
+
 		int numSuperpixels = 400;
 		float spatialWeight = 1000f;
 
 		dataset.setupSuperpixelContainer(numSuperpixels, spatialWeight);
 
+		dataset.calculateProbabilityDistributionsSPmean();
+		dataset.calculateProbabilityDistributionsSP();  
+        dataset.calculateKlDivergencesSuperpixelLevel();
+		
 		// Parameters that are the constant
 		double fuzziness = 2.0;
 		int numClassificationRuns = 10;
 		Bounds bounds = dataset.getBounds();
 
-		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_MEAN_EUCLIDEAN};
+		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM};
 
 		// For every distance measure
-		for (DistanceMeasure distanceMeasure : distanceMeasures) {
+		for (DistanceMeasure distanceMeasure : distanceMeasures) { 
 
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
-			for (int i = 5; i < 51; i += 5) {
+			for (int i = 12; i < 51; i += 5) {
 
 
 				for (int run = 0; run < 10; run++) {
@@ -127,7 +123,7 @@ public class DistanceMetricExperiment implements IExperiment {
 					mlFlow.endRun();
 				}
 			}
-
+		}
 		}
 
 

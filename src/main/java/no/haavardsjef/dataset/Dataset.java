@@ -336,7 +336,7 @@ public class Dataset implements IDataset {
 					
 				if (probDistBand2_P[i] == 0.0){
 					probDistBand2_P[i] = 0.00000001;}
-				
+
 				return probDistBand1_P[i] * DoubleMath.log2(probDistBand1_P[i] / probDistBand2_P[i]);
         }).sum();
            totalDistance = totalDistance + Math.abs(kl);	
@@ -458,7 +458,7 @@ public class Dataset implements IDataset {
 	 *
 	 */
 	public void calculateProbabilityDistributionsSP() {
-		log.info("Calculating probability distributions for for each superpixel for dataset {}...", this.datasetName);
+		log.info("Calculating probability distributions for each superpixel for dataset {}...", this.datasetName);
 
 		int NUM_BINS = 256;
 		this.probabilityDistributionsSP = new double[this.numBands][this.getNumSuperpixels()][NUM_BINS];
@@ -479,23 +479,24 @@ public class Dataset implements IDataset {
 				INDArray superpixelBandData = result.dup().reshape(numPixels);
 
 				
-				double[] r = superpixelBandData.toDoubleVector();
+				
 
 				int[] histogram = new int[NUM_BINS];
 				double[] normalHistogram = new double[NUM_BINS];
     
 				double max = (double) superpixelBandData.maxNumber();
-				BooleanIndexing.replaceWhere(superpixelBandData, 5000, Conditions.equals(0));
+				BooleanIndexing.replaceWhere(superpixelBandData, 5000, Conditions.equals(0.0));
 				double min = (double) superpixelBandData.minNumber();
-			
+				double[] r = superpixelBandData.toDoubleVector();
+
 				int countp = 0;
 
 			   // Bin all superpixels to create histogram
 				for (double p : r) {
-					if (p!=0.0){
-					int bin = (int) Math.floor((p - min) / (max - min) * (NUM_BINS - 1));
-					histogram[bin] += 1;
-					countp +=1;
+					if (p!=5000){
+						int bin = (int) Math.floor((p - min) / (max - min) * (NUM_BINS - 1));
+						histogram[bin] += 1;
+						countp +=1;
 					}
 				}
 		
