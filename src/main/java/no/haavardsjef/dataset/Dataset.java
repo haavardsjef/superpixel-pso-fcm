@@ -355,8 +355,8 @@ public class Dataset implements IDataset {
 
 
         double kl = IntStream.range(0, NUM_BINS).mapToDouble(i -> {
-            if ( probDistBand2[i] == 0.0) {
-                return probDistBand2[i] = 0.0000001;
+            if ( probDistBand2[i] == 0.0 && probDistBand1[i] != 0.0) {
+                probDistBand2[i] = 0.0000001;
             }
             return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
         }).sum();
@@ -598,12 +598,12 @@ public class Dataset implements IDataset {
         
 			double di= IntStream.range(0, NUM_BINS).mapToDouble(x -> {
 				return IntStream.range(0, NUM_BINS).mapToDouble(y -> {
+					if (probDistBand1[x] == 0.0 && probDistBand2[y] != 0.0){
+						probDistBand1[x] = 0.0000001;
+					}
+
 					double joint = jointProbDistBandSPmean[x][y];
-					if (joint ==0.0){
-						joint = 0.00000001;}
-					if (probDistBand1[x]==0.0){
-						probDistBand1[x] = 0.00000001;}
-					return joint == 0.0 ? 0.0 : joint * DoubleMath.log2((probDistBand1[x] * probDistBand2[y]) / Math.pow(joint, 2));
+					return joint == 0.0 ? 1.0 : joint * DoubleMath.log2((probDistBand1[x] * probDistBand2[y]) / Math.pow(joint, 2));
 				}).sum();
 			}).sum();
         	
