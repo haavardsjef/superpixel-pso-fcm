@@ -79,8 +79,12 @@ public class Dataset implements IDataset {
 	/**
 	 * Initializes the superpixel container. Must be called before using any superpixel related methods.
 	 */
+	public void setupSuperpixelContainer(int numSuperpixels, float spatialWeight) {
+		this.superpixelContainer = new SuperpixelContainer(this.data, numSuperpixels, spatialWeight);
+	}
+
 	public void setupSuperpixelContainer() {
-		this.superpixelContainer = new SuperpixelContainer(this.data);
+		this.superpixelContainer = new SuperpixelContainer(this.data, 100, 200f);
 	}
 
 	/**
@@ -630,6 +634,20 @@ public class Dataset implements IDataset {
 			default:
 				throw new IllegalArgumentException("Unknown distance measure: " + distanceMeasure);
 		}
+	}
+
+	public void saveSuperpixelMap(String path) throws IOException {
+		if (this.superpixelContainer == null) {
+			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		}
+		this.superpixelContainer.saveSPMap(path);
+	}
+
+	public int getSuperpixelIndex(int pixelIndex) {
+		if (this.superpixelContainer == null) {
+			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		}
+		return this.superpixelContainer.getSuperpixelIndex(pixelIndex);
 	}
 
 

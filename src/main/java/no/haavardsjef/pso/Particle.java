@@ -4,13 +4,15 @@ import no.haavardsjef.objectivefunctions.IObjectiveFunction;
 import no.haavardsjef.utility.Bounds;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Particle {
 	private int numDimensions;
 
 
-	private final float[] position;
+	private float[] position;
 	private float[] velocity;
 	private float fitness;
 	private float[] bestPosition;
@@ -76,7 +78,29 @@ public class Particle {
 				this.position[i] = bounds.upper();
 			}
 		}
+		repairPosition();
 	}
+
+	/**
+	 * The FCM objective function inherently discourages selecting duplicate bands as cluster centers.
+	 * However, this problem might still occur when the number of selected bands is high. This violates
+	 * the problem constraint of selecting exactly $k$ unique bands. To prevent this, SPPF employs a repair
+	 * mechanism that detects and corrects these violations by replacing duplicate selected bands with
+	 * randomly selected new band indices.
+	 */
+	private void repairPosition() {
+		Set<Float> uniqueValues = new HashSet<>();
+		for (int i = 0; i < this.position.length; i++) {
+			float roundedValue = Math.round(this.position[i]);
+			// If the value is already in the set, generate a new random value
+			while (!uniqueValues.add(roundedValue)) {
+				roundedValue = (float) Math.random() * (bounds.upper() - bounds.lower()) + bounds.lower();
+				this.position[i] = roundedValue;
+			}
+		}
+	}
+
+
 
 	public void initializeRandomly() {
 		for (int i = 0; i < numDimensions; i++) {

@@ -11,6 +11,7 @@ import boofcv.factory.segmentation.FactorySegmentationAlg;
 import boofcv.gui.ListDisplayPanel;
 import boofcv.gui.feature.VisualizeRegions;
 import boofcv.gui.image.ShowImages;
+import boofcv.gui.image.VisualizeImageData;
 import boofcv.io.UtilIO;
 import boofcv.io.image.ConvertBufferedImage;
 import boofcv.io.image.UtilImageIO;
@@ -30,6 +31,7 @@ public class SuperpixelSegmentation {
 		// Segmentation often works better after blurring the image. Reduces high frequency image components which
 		// can cause over segmentation
 		GBlurImageOps.gaussian(color, color, 0.5, -1, null); //TODO: Explore options here
+
 
 		// Storage for segmented image. Each pixel will be assigned a label from 0 to N-1, where N is the number
 		// of segments in the image
@@ -89,10 +91,10 @@ public class SuperpixelSegmentation {
 		ShowImages.showWindow(gui, "Superpixels", true);
 	}
 
-	public int[] segment(Planar<GrayF32> image, boolean visualize) {
+	public int[] segment(Planar<GrayF32> image, boolean visualize, int numberOfSuperpixels, float spatialWeight) {
 		int numBands = image.getNumBands();
 		ImageType<Planar<GrayF32>> imageType = ImageType.pl(numBands, GrayF32.class);
-		ImageSuperpixels algorithm = FactoryImageSegmentation.slic(new ConfigSlic(100, 200f), imageType);
+		ImageSuperpixels algorithm = FactoryImageSegmentation.slic(new ConfigSlic(numberOfSuperpixels, spatialWeight), imageType);
 		return performSegmentation(algorithm, image, visualize);
 	}
 

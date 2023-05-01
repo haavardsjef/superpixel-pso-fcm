@@ -48,7 +48,7 @@ public class SwarmPopulation {
 		long startTime = System.nanoTime();
 		List<Double> avgFitness = new ArrayList<Double>();
 		for (int i = 0; i < numIterations; i++) {
-			System.out.println("Iteration: " + i + " / " + numIterations + " \r");
+			System.out.print("Iteration: " + i + " / " + numIterations + " \r");
 			iterationsSinceImprovement.getAndIncrement();
 
 			if (iterationsSinceImprovement.get() > 15 && earlyStopping) {
@@ -73,8 +73,6 @@ public class SwarmPopulation {
 				return particle.getFitness();
 			}).reduce(0f, Float::sum);
 			avgFitness.add((double) (totalFitness / this.numParticles));
-			System.out.println("Global best fitness after iteration " + i + ": " + globalBestFitness);
-			System.out.println("Global best position after iteration " + i + ": " + Arrays.toString(globalBestPosition));
 			this.numIterationsRan = i + 1;
 		}
 		if (plot && this.numDimensions == 2) {

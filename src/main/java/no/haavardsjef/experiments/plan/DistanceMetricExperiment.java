@@ -27,7 +27,7 @@ public class DistanceMetricExperiment implements IExperiment {
 
 	public void runExperiment() throws IOException {
 		// Initialize new MLflow client to connect to local MLflow server
-		MLFlow mlFlow = new MLFlow();
+		MLFlow mlFlow = new MLFlow("http://35.185.118.215:8080/");
 
 		// Create a new experiment
 		String experimentName = "sofie-distance-metric-experiment";
@@ -41,73 +41,91 @@ public class DistanceMetricExperiment implements IExperiment {
 		dataset.calculateProbabilityDistributionsSP();  
         dataset.calculateKlDivergencesSuperpixelLevel();
 		
+		mlFlow.initializeExperiment(experimentName);
+
+
+		Dataset dataset = new Dataset(DatasetName.indian_pines);
+		int numSuperpixels = 400;
+		float spatialWeight = 1000f;
+
+		dataset.setupSuperpixelContainer(numSuperpixels, spatialWeight);
+
 		// Parameters that are the constant
 		double fuzziness = 2.0;
 		int numClassificationRuns = 10;
 		Bounds bounds = dataset.getBounds();
 
+		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_MEAN_EUCLIDEAN};
+
 		// For every distance measure
-		//for (DistanceMeasure distanceMeasure : DistanceMeasure.values()) {
-			
-		    DistanceMeasure distanceMeasure = DistanceMeasure.SP_MEAN_EUCLIDEAN;
+		for (DistanceMeasure distanceMeasure : distanceMeasures) {
 
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
-			for (int i = 20; i < 21; i += 2) {
-                
-				int numberOfBandsToSelect = i;
-				// Start a new run
-				String runName = distanceMeasure + "_numBands_" + i;
-				mlFlow.startRun(runName);
-
-				
-				long startTime = System.currentTimeMillis();
-				PSOParams params = new PSOParams(numberOfBandsToSelect);
-				params.w = 0.75f;
-				params.c1 = 1.0f;
-				params.c2 = 1.0f;
+			for (int i = 5; i < 51; i += 5) {
 
 
-				// PSO-FCM to select cluster centers
-				SwarmPopulation swarmPopulation = new SwarmPopulation(params.numParticles, numberOfBandsToSelect, bounds, objectiveFunction);
-				Particle solution = swarmPopulation.optimize(params.numIterations, params.w, params.c1, params.c2, false, true);
-				List<Integer> clusterCentroids = solution.getDiscretePositionSorted();
+				for (int run = 0; run < 10; run++) {
 
-				//Log parameters
-				mlFlow.logParam("distanceMeasure", distanceMeasure.toString());
-				mlFlow.logParam("fuzziness", String.valueOf(fuzziness));
-				mlFlow.logParam("dataset", dataset.getDatasetName().toString());
-				mlFlow.logPSOParams(params);
-				mlFlow.logParam("NumClassificationRuns", String.valueOf(numClassificationRuns));
-				mlFlow.logParam("clusterCentroids", clusterCentroids.toString());
-				mlFlow.logParam("numIterationsRan", String.valueOf(swarmPopulation.numIterationsRan));
-				mlFlow.logParam("numSuperPixels", String.valueOf(dataset.getNumSuperpixels()));
-				
-				ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
-				cr.hardClusterBands(clusterCentroids);
 
-				List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCentroids);
-				mlFlow.logParam("selectedBands", selectedBands.toString());
-				mlFlow.logParam("CRMethod", "highestEntropyRepresentative");
+					int numberOfBandsToSelect = i;
+					// Start a new run
+					String runName = "r-" + distanceMeasure + "-" + numberOfBandsToSelect + "-" + run;
+					mlFlow.startRun(runName);
 
-				// Evaluate using SVMClassifier
-				SVMClassifier svmClassifier = new SVMClassifier(dataset);
-				ClassificationResult result = svmClassifier.evaluate(selectedBands, numClassificationRuns);
-				DescriptiveStatistics OA = result.getOverallAccuracy();
-				DescriptiveStatistics AOA = result.getAverageOverallAccuracy();
+					mlFlow.logParam("repair", "True");
 
-				// Log metrics
-				mlFlow.logMetric("OA_mean", OA.getMean());
-				mlFlow.logMetric("OA_std", OA.getStandardDeviation());
-				mlFlow.logMetric("AOA_mean", AOA.getMean());
-				mlFlow.logMetric("AOA_std", AOA.getStandardDeviation());
 
-				long endTime = System.currentTimeMillis();
-				long duration = (endTime - startTime) / 1000;
+					long startTime = System.currentTimeMillis();
+					PSOParams params = new PSOParams(numberOfBandsToSelect);
 
-				mlFlow.logMetric("duration", duration);
 
-				// End run
-				mlFlow.endRun();
+					// PSO-FCM to select cluster centers
+					SwarmPopulation swarmPopulation = new SwarmPopulation(params.numParticles, numberOfBandsToSelect, bounds, objectiveFunction);
+					Particle solution = swarmPopulation.optimize(params.numIterations, params.w, params.c1, params.c2, false, true);
+					List<Integer> clusterCentroids = solution.getDiscretePositionSorted();
+
+					long optimizationEndTime = System.currentTimeMillis();
+					long optimizationDuration = (optimizationEndTime - startTime) / 1000;
+					mlFlow.logMetric("optimizationDuration", optimizationDuration);
+
+					// Log parameters
+					mlFlow.logPSOParams(params);
+					mlFlow.logParam("numSuperpixels", String.valueOf(numSuperpixels));
+					mlFlow.logParam("spatialWeight", String.valueOf(spatialWeight));
+					mlFlow.logParam("fuzziness", String.valueOf(fuzziness));
+					mlFlow.logParam("dataset", dataset.getDatasetName().toString());
+					mlFlow.logParam("distanceMeasure", distanceMeasure.toString());
+					mlFlow.logParam("NumClassificationRuns", String.valueOf(numClassificationRuns));
+					mlFlow.logParam("clusterCentroids", clusterCentroids.toString());
+					mlFlow.logParam("numIterationsRan", String.valueOf(swarmPopulation.numIterationsRan));
+
+					ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
+					cr.hardClusterBands(clusterCentroids);
+					List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCentroids);
+					mlFlow.logParam("selectedBands", selectedBands.toString());
+					mlFlow.logParam("CRMethod", "entropy");
+
+
+					// Evaluate using SVMClassifier
+					SVMClassifier svmClassifier = new SVMClassifier(dataset);
+					ClassificationResult result = svmClassifier.evaluate(selectedBands, numClassificationRuns);
+					DescriptiveStatistics OA = result.getOverallAccuracy();
+					DescriptiveStatistics AOA = result.getAverageOverallAccuracy();
+
+					// Log metrics
+					mlFlow.logMetric("OA", OA.getMean());
+					mlFlow.logMetric("OA_SD", OA.getStandardDeviation());
+					mlFlow.logMetric("AOA", AOA.getMean());
+					mlFlow.logMetric("AOA_SD", AOA.getStandardDeviation());
+
+					long endTime = System.currentTimeMillis();
+					long totalDuration = (endTime - startTime) / 1000;
+
+					mlFlow.logMetric("totalDuration", totalDuration);
+
+					// End run
+					mlFlow.endRun();
+				}
 			}
 
 		}
