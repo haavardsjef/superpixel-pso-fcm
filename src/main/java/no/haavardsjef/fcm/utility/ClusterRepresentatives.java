@@ -21,6 +21,14 @@ public class ClusterRepresentatives {
 		clusters = new ArrayList<>();
 	}
 
+	public enum RepresentativeMethod {
+		clusterCentroid,
+		mean,
+		highestEntropy,
+		weightedSum,
+		rankingHybrid,
+	}
+
 	public void hardClusterBands(List<Integer> clusterCentroids) {
 		int numClusters = clusterCentroids.size();
 
@@ -42,6 +50,23 @@ public class ClusterRepresentatives {
 			}
 
 			clusters.get(closestCentroid).add(i);
+		}
+	}
+
+	public List<Integer> selectRepresentatives(List<Integer> clusterCentroids, RepresentativeMethod representativeMethod) {
+		switch (representativeMethod) {
+			case clusterCentroid:
+				return centroidRepresentatives(clusterCentroids);
+			case mean:
+				return meanRepresentative(clusterCentroids);
+			case highestEntropy:
+				return highestEntropyRepresentative(clusterCentroids);
+			case weightedSum:
+				return weightedSumRepresentative();
+			case rankingHybrid:
+				return rankingHybridRepresentative();
+			default:
+				throw new IllegalArgumentException("No representative method selected");
 		}
 	}
 
@@ -153,8 +178,14 @@ public class ClusterRepresentatives {
 
 			for (int i = 0; i < cluster.size(); i++) {
 				double normalizedEntropy = (clusterEntropies.get(i) - minEntropy) / (maxEntropy - minEntropy);
+				if (Double.isNaN(normalizedEntropy)) {
+					normalizedEntropy = 1.0;
+				}
 				normalizedEntropies.add(normalizedEntropy);
 				double normalizedDistance = (clusterDistances.get(i) - minDistance) / (maxDistance - minDistance);
+				if (Double.isNaN(normalizedDistance)) {
+					normalizedDistance = 1.0;
+				}
 				normalizedDistances.add(normalizedDistance);
 			}
 
