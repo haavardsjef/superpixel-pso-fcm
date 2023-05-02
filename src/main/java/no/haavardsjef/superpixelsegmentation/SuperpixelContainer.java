@@ -124,6 +124,10 @@ public class SuperpixelContainer {
 		return numSuperpixels;
 	}
 
+	public INDArray getSuperixelmap(){
+		return this.superpixelMap;
+	}
+
 	public void saveSPMap(String fileName) {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
 			for (int row = 0; row < this.superpixelMap.rows(); row++) {

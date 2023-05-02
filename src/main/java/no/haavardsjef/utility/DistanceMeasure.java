@@ -3,6 +3,9 @@ package no.haavardsjef.utility;
 public enum DistanceMeasure {
 	PIXEL_EUCLIDEAN,
 	SP_MEAN_EUCLIDEAN,
-
-
+	PIXEL_KL_DIVERGENCE,
+	SP_MEAN_KL_DIVERGENCE,
+	SP_MEAN_COR_COF,
+	SP_LEVEL_KL_DIVERGENCE_L1NORM,
+	SP_MEAN_DISJOINT
 }
