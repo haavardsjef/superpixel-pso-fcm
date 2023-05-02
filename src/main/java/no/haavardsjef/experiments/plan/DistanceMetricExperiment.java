@@ -42,9 +42,12 @@ public class DistanceMetricExperiment implements IExperiment {
 
 		dataset.setupSuperpixelContainer(numSuperpixels, spatialWeight);
 
-		dataset.calculateProbabilityDistributionsSPmean();
-		dataset.calculateProbabilityDistributionsSP();  
-        dataset.calculateKlDivergencesSuperpixelLevel();
+		//Calculations needed for the different informationt based measures:
+		//dataset.calculateProbabilityDistributionsSPmean(); //SP_MEAN_KL_Divergence, SP_MEAN_DISJOINT, SP_MEAN_COR_COF
+		//dataset.calculateDisjointInfoSuperpixelLevel(); //SP_MEAN_DISJOINT
+		//dataset.calculateCorrelationCoefficients_SP();  //SP_MEAN_COR_COF
+        dataset.calculateKlDivergencesSuperpixelLevel(); //SP_LEVEL_KL_DIVERGENCE_L1NORM}
+    
 		
 		// Parameters that are the constant
 		double fuzziness = 2.0;
@@ -57,10 +60,10 @@ public class DistanceMetricExperiment implements IExperiment {
 		for (DistanceMeasure distanceMeasure : distanceMeasures) { 
 
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
-			for (int i = 12; i < 51; i += 5) {
+			for (int i = 5; i < 51; i += 5) {
 
 
-				for (int run = 0; run < 10; run++) {
+				for (int run = 0; run < 1; run++) {
 
 
 					int numberOfBandsToSelect = i;
