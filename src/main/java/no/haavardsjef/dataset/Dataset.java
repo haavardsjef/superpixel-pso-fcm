@@ -358,6 +358,9 @@ public class Dataset implements IDataset {
             if ( probDistBand2[i] == 0.0 && probDistBand1[i] != 0.0) {
                 probDistBand2[i] = 0.0000001;
             }
+			if ( probDistBand2[i] == 0.0 && probDistBand1[i] == 0.0) {
+                return 0;
+            }
             return probDistBand1[i] * DoubleMath.log2(probDistBand1[i] / probDistBand2[i]);
         }).sum();
         return kl;
