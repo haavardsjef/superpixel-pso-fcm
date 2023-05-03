@@ -15,6 +15,8 @@ public class ClusterRepresentatives {
 
 	private final Dataset dataset;
 	private final List<List<Integer>> clusters;
+	private double w_e = 1.0;
+	private double w_ct = 0.5;
 
 	public ClusterRepresentatives(Dataset dataset) {
 		this.dataset = dataset;
@@ -27,6 +29,14 @@ public class ClusterRepresentatives {
 		highestEntropy,
 		weightedSum,
 		rankingHybrid,
+	}
+
+	public void setW_e(double w_e) {
+		this.w_e = w_e;
+	}
+
+	public void setW_ct(double w_ct) {
+		this.w_ct = w_ct;
 	}
 
 	public void hardClusterBands(List<Integer> clusterCentroids) {
@@ -191,7 +201,7 @@ public class ClusterRepresentatives {
 
 			// Calculate weighted sum
 			for (int i = 0; i < cluster.size(); i++) {
-				double weightedSum = 1.0 * normalizedEntropies.get(i) - 0.5 * normalizedDistances.get(i);
+				double weightedSum = w_e * normalizedEntropies.get(i) - w_ct * normalizedDistances.get(i);
 				if (weightedSum > highestWeightedSum) {
 					highestWeightedSum = weightedSum;
 					bestBand = i;
