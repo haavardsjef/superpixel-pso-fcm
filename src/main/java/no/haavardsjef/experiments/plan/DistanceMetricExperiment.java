@@ -30,48 +30,48 @@ public class DistanceMetricExperiment implements IExperiment {
 		MLFlow mlFlow = new MLFlow("http://35.185.118.215:8080/");
 
 		// Create a new experiment
-		String experimentName = "sofie-distance-metric-experiment";
+		String experimentName = "distance-metric";
 		mlFlow.initializeExperiment(experimentName);
 
 
-		Dataset dataset = new Dataset(DatasetName.indian_pines);
+		Dataset dataset = new Dataset(DatasetName.Salinas);
 
 
-		int numSuperpixels = 400;
+		int numSuperpixels = 600;
 		float spatialWeight = 1000f;
 
 		dataset.setupSuperpixelContainer(numSuperpixels, spatialWeight);
 
 		//Calculations needed for the different informationt based measures:
-		//dataset.calculateProbabilityDistributionsSPmean(); //SP_MEAN_KL_Divergence, SP_MEAN_DISJOINT, SP_MEAN_COR_COF
-		//dataset.calculateDisjointInfoSuperpixelLevel(); //SP_MEAN_DISJOINT
-		//dataset.calculateCorrelationCoefficients_SP();  //SP_MEAN_COR_COF
-        dataset.calculateKlDivergencesSuperpixelLevel(); //SP_LEVEL_KL_DIVERGENCE_L1NORM}
-    
-		
+		dataset.calculateProbabilityDistributionsSPmean(); //SP_MEAN_KL_Divergence, SP_MEAN_DISJOINT, SP_MEAN_COR_COF
+		dataset.calculateDisjointInfoSuperpixelLevel(); //SP_MEAN_DISJOINT
+		dataset.calculateCorrelationCoefficients_SP();  //SP_MEAN_COR_COF
+		dataset.calculateKlDivergencesSuperpixelLevel(); //SP_LEVEL_KL_DIVERGENCE_L1NORM}
+
+
 		// Parameters that are the constant
 		double fuzziness = 2.0;
 		int numClassificationRuns = 10;
 		Bounds bounds = dataset.getBounds();
 
-		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM};
+		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_MEAN_KL_DIVERGENCE, DistanceMeasure.SP_MEAN_DISJOINT, DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM, DistanceMeasure.SP_MEAN_COR_COF};
 
 		// For every distance measure
-		for (DistanceMeasure distanceMeasure : distanceMeasures) { 
+		for (DistanceMeasure distanceMeasure : distanceMeasures) {
 
 			IObjectiveFunction objectiveFunction = new FuzzyCMeans(dataset, fuzziness, distanceMeasure);
 			for (int i = 5; i < 51; i += 5) {
 
 
-				for (int run = 0; run < 1; run++) {
+				for (int run = 0; run < 10; run++) {
 
 
 					int numberOfBandsToSelect = i;
 					// Start a new run
-					String runName = "r-" + distanceMeasure + "-" + numberOfBandsToSelect + "-" + run;
+					String runName = "SA-" + distanceMeasure + "-" + numberOfBandsToSelect + "-" + run;
 					mlFlow.startRun(runName);
 
-					mlFlow.logParam("repair", "True");
+					mlFlow.logParam("repair", "v4");
 
 
 					long startTime = System.currentTimeMillis();
@@ -127,7 +127,7 @@ public class DistanceMetricExperiment implements IExperiment {
 				}
 			}
 		}
-		}
+	}
 
 
 //	}
