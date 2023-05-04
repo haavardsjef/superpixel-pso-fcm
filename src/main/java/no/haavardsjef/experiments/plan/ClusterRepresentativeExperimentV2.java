@@ -30,7 +30,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 		String experimentId = "9";
 
 		// Define the filter string
-		String filterString = "attributes.status = 'FINISHED' and params.dataset = 'Salinas' and params.repair = 'v4' and params.distanceMeasure = 'SP_MEAN_EUCLIDEAN'";
+		String filterString = "attributes.status = 'FINISHED' and params.dataset = 'indian_pines' and params.repair = 'v4' and params.distanceMeasure != 'SP_MEAN_EUCLIDEAN'";
 
 		// Search for active runs in the specified experiment with id "4"
 		List<Service.Run> runs = client.searchRuns(List.of(experimentId), filterString, Service.ViewType.ACTIVE_ONLY, 1000).getItems();
@@ -72,8 +72,10 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 			Dataset ds = new Dataset(DatasetName.indian_pines);
 			ClusterRepresentatives cr = new ClusterRepresentatives(ds);
 			cr.hardClusterBands(clusterCentersList);
+			cr.setW_e(0.35);
+			cr.setW_ct(1.0);
 
-			ClusterRepresentatives.RepresentativeMethod[] representativeMethods = new ClusterRepresentatives.RepresentativeMethod[]{ClusterRepresentatives.RepresentativeMethod.highestEntropy, ClusterRepresentatives.RepresentativeMethod.mean, ClusterRepresentatives.RepresentativeMethod.rankingHybrid};
+			ClusterRepresentatives.RepresentativeMethod[] representativeMethods = new ClusterRepresentatives.RepresentativeMethod[]{ClusterRepresentatives.RepresentativeMethod.weightedSum};
 
 			MLFlow mlFlow = new MLFlow("http://35.185.118.215:8080/");
 
@@ -82,7 +84,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 
 			for (ClusterRepresentatives.RepresentativeMethod representativeMethod : representativeMethods) {
 				// Initialize run
-				mlFlow.startRun("SA-" + representativeMethod + "-" + numBands);
+				mlFlow.startRun("IP-" + representativeMethod + "-" + numBands);
 				mlFlow.logParam("clusterCentroids", clusterCentersList.toString());
 				mlFlow.logParam("representativeMethod", representativeMethod.toString());
 				mlFlow.logParam("dataset", ds.getDatasetName().toString());
