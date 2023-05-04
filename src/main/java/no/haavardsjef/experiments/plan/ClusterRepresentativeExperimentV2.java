@@ -30,7 +30,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 		String experimentId = "9";
 
 		// Define the filter string
-		String filterString = "attributes.status = 'FINISHED' and params.dataset = 'indian_pines' and params.repair = 'v4'";
+		String filterString = "attributes.status = 'FINISHED' and params.dataset = 'Salinas' and params.repair = 'v4' and params.distanceMeasure = 'SP_MEAN_EUCLIDEAN'";
 
 		// Search for active runs in the specified experiment with id "4"
 		List<Service.Run> runs = client.searchRuns(List.of(experimentId), filterString, Service.ViewType.ACTIVE_ONLY, 1000).getItems();
@@ -73,7 +73,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 			ClusterRepresentatives cr = new ClusterRepresentatives(ds);
 			cr.hardClusterBands(clusterCentersList);
 
-			ClusterRepresentatives.RepresentativeMethod[] representativeMethods = new ClusterRepresentatives.RepresentativeMethod[]{ClusterRepresentatives.RepresentativeMethod.weightedSum, ClusterRepresentatives.RepresentativeMethod.rankingHybrid};
+			ClusterRepresentatives.RepresentativeMethod[] representativeMethods = new ClusterRepresentatives.RepresentativeMethod[]{ClusterRepresentatives.RepresentativeMethod.highestEntropy, ClusterRepresentatives.RepresentativeMethod.mean, ClusterRepresentatives.RepresentativeMethod.rankingHybrid};
 
 			MLFlow mlFlow = new MLFlow("http://35.185.118.215:8080/");
 
@@ -82,7 +82,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 
 			for (ClusterRepresentatives.RepresentativeMethod representativeMethod : representativeMethods) {
 				// Initialize run
-				mlFlow.startRun("IP-" + representativeMethod + "-" + numBands);
+				mlFlow.startRun("SA-" + representativeMethod + "-" + numBands);
 				mlFlow.logParam("clusterCentroids", clusterCentersList.toString());
 				mlFlow.logParam("representativeMethod", representativeMethod.toString());
 				mlFlow.logParam("dataset", ds.getDatasetName().toString());
