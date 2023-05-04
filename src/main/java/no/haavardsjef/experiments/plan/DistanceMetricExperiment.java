@@ -81,6 +81,8 @@ public class DistanceMetricExperiment implements IExperiment {
 					// PSO-FCM to select cluster centers
 					SwarmPopulation swarmPopulation = new SwarmPopulation(params.numParticles, numberOfBandsToSelect, bounds, objectiveFunction);
 					Particle solution = swarmPopulation.optimize(params.numIterations, params.w, params.c1, params.c2, false, true);
+					float fitness = solution.evaluate();
+					mlFlow.logParam("fitness", String.valueOf(fitness));
 					List<Integer> clusterCentroids = solution.getDiscretePositionSorted();
 
 					long optimizationEndTime = System.currentTimeMillis();
@@ -100,9 +102,10 @@ public class DistanceMetricExperiment implements IExperiment {
 
 					ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
 					cr.hardClusterBands(clusterCentroids);
-					List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCentroids);
+					ClusterRepresentatives.RepresentativeMethod representativeMethod = ClusterRepresentatives.RepresentativeMethod.rankingHybrid;
+					List<Integer> selectedBands = cr.selectRepresentatives(clusterCentroids, representativeMethod);
 					mlFlow.logParam("selectedBands", selectedBands.toString());
-					mlFlow.logParam("CRMethod", "entropy");
+					mlFlow.logParam("CRMethod", representativeMethod.toString());
 
 
 					// Evaluate using SVMClassifier
