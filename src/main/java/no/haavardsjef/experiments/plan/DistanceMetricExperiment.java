@@ -34,11 +34,11 @@ public class DistanceMetricExperiment implements IExperiment {
 		mlFlow.initializeExperiment(experimentName);
 
 
-		Dataset dataset = new Dataset(DatasetName.Salinas);
+		Dataset dataset = new Dataset(DatasetName.Pavia);
 
 
-		int numSuperpixels = 600;
-		float spatialWeight = 1000f;
+		int numSuperpixels = 900;
+		float spatialWeight = 10000f;
 
 		dataset.setupSuperpixelContainer(numSuperpixels, spatialWeight);
 
@@ -51,10 +51,9 @@ public class DistanceMetricExperiment implements IExperiment {
 
 		// Parameters that are the constant
 		double fuzziness = 2.0;
-		int numClassificationRuns = 10;
 		Bounds bounds = dataset.getBounds();
 
-		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_MEAN_KL_DIVERGENCE, DistanceMeasure.SP_MEAN_DISJOINT, DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM, DistanceMeasure.SP_MEAN_COR_COF};
+		DistanceMeasure[] distanceMeasures = new DistanceMeasure[]{DistanceMeasure.SP_MEAN_DISJOINT, DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM, DistanceMeasure.SP_MEAN_COR_COF};
 
 		// For every distance measure
 		for (DistanceMeasure distanceMeasure : distanceMeasures) {
@@ -68,11 +67,8 @@ public class DistanceMetricExperiment implements IExperiment {
 
 					int numberOfBandsToSelect = i;
 					// Start a new run
-					String runName = "SA-" + distanceMeasure + "-" + numberOfBandsToSelect + "-" + run;
+					String runName = "PA-" + distanceMeasure + "-" + numberOfBandsToSelect + "-" + run;
 					mlFlow.startRun(runName);
-
-					mlFlow.logParam("repair", "v4");
-
 
 					long startTime = System.currentTimeMillis();
 					PSOParams params = new PSOParams(numberOfBandsToSelect);
@@ -96,34 +92,9 @@ public class DistanceMetricExperiment implements IExperiment {
 					mlFlow.logParam("fuzziness", String.valueOf(fuzziness));
 					mlFlow.logParam("dataset", dataset.getDatasetName().toString());
 					mlFlow.logParam("distanceMeasure", distanceMeasure.toString());
-					mlFlow.logParam("NumClassificationRuns", String.valueOf(numClassificationRuns));
 					mlFlow.logParam("clusterCentroids", clusterCentroids.toString());
 					mlFlow.logParam("numIterationsRan", String.valueOf(swarmPopulation.numIterationsRan));
 
-					ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
-					cr.hardClusterBands(clusterCentroids);
-					ClusterRepresentatives.RepresentativeMethod representativeMethod = ClusterRepresentatives.RepresentativeMethod.rankingHybrid;
-					List<Integer> selectedBands = cr.selectRepresentatives(clusterCentroids, representativeMethod);
-					mlFlow.logParam("selectedBands", selectedBands.toString());
-					mlFlow.logParam("CRMethod", representativeMethod.toString());
-
-
-					// Evaluate using SVMClassifier
-					SVMClassifier svmClassifier = new SVMClassifier(dataset);
-					ClassificationResult result = svmClassifier.evaluate(selectedBands, numClassificationRuns);
-					DescriptiveStatistics OA = result.getOverallAccuracy();
-					DescriptiveStatistics AOA = result.getAverageOverallAccuracy();
-
-					// Log metrics
-					mlFlow.logMetric("OA", OA.getMean());
-					mlFlow.logMetric("OA_SD", OA.getStandardDeviation());
-					mlFlow.logMetric("AOA", AOA.getMean());
-					mlFlow.logMetric("AOA_SD", AOA.getStandardDeviation());
-
-					long endTime = System.currentTimeMillis();
-					long totalDuration = (endTime - startTime) / 1000;
-
-					mlFlow.logMetric("totalDuration", totalDuration);
 
 					// End run
 					mlFlow.endRun();
