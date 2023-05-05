@@ -15,8 +15,8 @@ public class ClusterRepresentatives {
 
 	private final Dataset dataset;
 	private final List<List<Integer>> clusters;
-	private double w_e = 1.0;
-	private double w_ct = 0.5;
+	private double w_e = 0.35;
+	private double w_ct = 1.0;
 
 	public ClusterRepresentatives(Dataset dataset) {
 		this.dataset = dataset;
