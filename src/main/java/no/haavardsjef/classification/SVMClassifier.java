@@ -27,8 +27,11 @@ public class SVMClassifier implements IClassifier {
 		});
 	}
 
-
 	public ClassificationResult evaluate(List<Integer> selectedBands, int numClassificationRuns) {
+		return evaluate(selectedBands, numClassificationRuns, 0.1);
+	}
+
+	public ClassificationResult evaluate(List<Integer> selectedBands, int numClassificationRuns, double trainingRatio) {
 		log.info("Evaluating SVM classifier with selected bands: " + selectedBands);
 
 
@@ -62,7 +65,6 @@ public class SVMClassifier implements IClassifier {
 
 
 			// Shuffle and split into training and test set
-			double trainingRatio = 0.1;
 			Sample[][] split = splitSamples(samples, trainingRatio);
 			Sample[] trainingSamples = split[0];
 			Sample[] testSamples = split[1];
