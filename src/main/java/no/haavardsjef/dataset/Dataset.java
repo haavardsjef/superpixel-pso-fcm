@@ -27,6 +27,7 @@ import java.util.stream.IntStream;
 public class Dataset implements IDataset {
 
 	private INDArray data;
+	private double[][][] dataAsArray;
 	public INDArray groundTruth;
 	private int numBands;
 	private int imageWidth;
@@ -78,6 +79,15 @@ public class Dataset implements IDataset {
 		}
 		String groundTruthPath = this.datasetPath + "/" + this.datasetName + "_gt.mat";
 		this.data = HyperspectralDataLoader.loadData(correctedDataPath);
+		// Also convert to 3D array for easier access.
+		this.dataAsArray = new double[(int) this.data.shape()[0]][(int) this.data.shape()[1]][(int) this.data.shape()[2]];
+		for (int i = 0; i < this.data.shape()[0]; i++) {
+			for (int j = 0; j < this.data.shape()[1]; j++) {
+				for (int k = 0; k < this.data.shape()[2]; k++) {
+					this.dataAsArray[i][j][k] = this.data.getDouble(i, j, k);
+				}
+			}
+		}
 		this.groundTruth = HyperspectralDataLoader.loadGroundTruth(groundTruthPath);
 		this.numBands = (int) this.data.shape()[0];
 		this.imageWidth = (int) this.data.shape()[2];
@@ -108,11 +118,31 @@ public class Dataset implements IDataset {
 	 * @param bandIndex2 The index of the second band.
 	 * @return The euclidean distance between the two bands.
 	 */
+//	public double euclideanDistance(int bandIndex1, int bandIndex2) {
+//		INDArray bandData1 = this.data.get(NDArrayIndex.point(bandIndex1), NDArrayIndex.all(), NDArrayIndex.all());
+//		INDArray bandData2 = this.data.get(NDArrayIndex.point(bandIndex2), NDArrayIndex.all(), NDArrayIndex.all());
+//
+//		return bandData1.distance2(bandData2); // Returns the euclidean distance.
+//	}
 	public double euclideanDistance(int bandIndex1, int bandIndex2) {
-		INDArray bandData1 = this.data.get(NDArrayIndex.point(bandIndex1), NDArrayIndex.all(), NDArrayIndex.all());
-		INDArray bandData2 = this.data.get(NDArrayIndex.point(bandIndex2), NDArrayIndex.all(), NDArrayIndex.all());
+		double[][] bandData1 = this.dataAsArray[bandIndex1];
+		double[][] bandData2 = this.dataAsArray[bandIndex2];
 
-		return bandData1.distance2(bandData2); // Returns the euclidean distance.
+		return calculateEuclideanDistance(bandData1, bandData2);
+	}
+
+	private double calculateEuclideanDistance(double[][] bandData1, double[][] bandData2) {
+		int numRows = bandData1.length;
+		int numCols = bandData1[0].length;
+
+		double sum = 0.0;
+		for (int row = 0; row < numRows; row++) {
+			for (int col = 0; col < numCols; col++) {
+				double diff = bandData1[row][col] - bandData2[row][col];
+				sum += diff * diff;
+			}
+		}
+		return Math.sqrt(sum);
 	}
 
 	@Override
