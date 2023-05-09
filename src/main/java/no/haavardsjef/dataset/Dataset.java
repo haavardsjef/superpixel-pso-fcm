@@ -148,14 +148,37 @@ public class Dataset implements IDataset {
 	 * @param bandIndex2 The index of the second band.
 	 * @return The euclidean distance between the two bands.
 	 */
+//	public double euclideanDistanceSP(int bandIndex1, int bandIndex2) {
+//		if (this.superpixelContainer == null) {
+//			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+//		}
+//		INDArray bandData1 = this.superpixelContainer.getSuperpixelMeans(bandIndex1);
+//		INDArray bandData2 = this.superpixelContainer.getSuperpixelMeans(bandIndex2);
+//
+//		return bandData1.distance2(bandData2); // Returns the euclidean distance.
+//	}
 	public double euclideanDistanceSP(int bandIndex1, int bandIndex2) {
 		if (this.superpixelContainer == null) {
 			throw new IllegalStateException("SuperpixelContainer is not initialized.");
 		}
-		INDArray bandData1 = this.superpixelContainer.getSuperpixelMeans(bandIndex1);
-		INDArray bandData2 = this.superpixelContainer.getSuperpixelMeans(bandIndex2);
 
-		return bandData1.distance2(bandData2); // Returns the euclidean distance.
+		double[] bandData1 = this.superpixelContainer.getSuperpixelMeansArr(bandIndex1);
+		double[] bandData2 = this.superpixelContainer.getSuperpixelMeansArr(bandIndex2);
+
+		return euclideanDistance(bandData1, bandData2);
+	}
+
+	private double euclideanDistance(double[] vector1, double[] vector2) {
+		if (vector1.length != vector2.length) {
+			throw new IllegalArgumentException("Input vectors must have the same length.");
+		}
+
+		double sum = 0.0;
+		for (int i = 0; i < vector1.length; i++) {
+			double diff = vector1[i] - vector2[i];
+			sum += diff * diff;
+		}
+		return Math.sqrt(sum);
 	}
 
 	public double[][] getDataAsArray() {

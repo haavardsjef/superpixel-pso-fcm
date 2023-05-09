@@ -3,13 +3,9 @@ package no.haavardsjef.superpixelsegmentation;
 import boofcv.struct.image.GrayF32;
 import boofcv.struct.image.Planar;
 import lombok.extern.log4j.Log4j2;
-import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.BooleanIndexing;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
-import org.nd4j.linalg.indexing.conditions.Conditions;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -27,6 +23,7 @@ public class SuperpixelContainer {
 	private INDArray superpixelMap;
 	private final INDArray data;
 	private INDArray superpixelMeans; // Shape: [numBands, numSuperpixels]
+	private double[][] superpixelMeansArray; // Shape: [numBands, numSuperpixels]
 	private int numSuperpixels;
 
 	public SuperpixelContainer(INDArray data, int numSuperpixels, float spatialWeight) {
@@ -74,6 +71,7 @@ public class SuperpixelContainer {
 		// Start timer
 		long startTime = System.currentTimeMillis();
 		this.superpixelMeans = Nd4j.zeros((int) this.data.shape()[0], this.numSuperpixels);
+		this.superpixelMeansArray = new double[(int) this.data.shape()[0]][this.numSuperpixels];
 		IntStream.range(0, (int) this.data.shape()[0]).forEach(band -> calculateMeanUsingMap(band));
 		// Stop timer
 		long endTime = System.currentTimeMillis();
@@ -106,6 +104,7 @@ public class SuperpixelContainer {
 			List<Double> pixelValues = entry.getValue();
 			double mean = pixelValues.stream().mapToDouble(Double::doubleValue).average().orElse(0);
 			this.superpixelMeans.putScalar(bandIndex, superpixelIndex, mean);
+			this.superpixelMeansArray[bandIndex][superpixelIndex] = mean;
 		}
 	}
 
@@ -120,11 +119,16 @@ public class SuperpixelContainer {
 		return this.superpixelMeans.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all());
 	}
 
+	public double[] getSuperpixelMeansArr(int bandIndex) {
+		return this.superpixelMeansArray[bandIndex];
+	}
+
+
 	public int getNumSuperpixels() {
 		return numSuperpixels;
 	}
 
-	public INDArray getSuperixelmap(){
+	public INDArray getSuperixelmap() {
 		return this.superpixelMap;
 	}
 
