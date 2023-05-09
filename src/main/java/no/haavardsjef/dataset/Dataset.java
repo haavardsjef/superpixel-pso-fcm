@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 /**
@@ -338,9 +339,11 @@ public class Dataset implements IDataset {
 		double[][] probDistBand2_SP = this.probabilityDistributionsSP[bandIndex2];
 
 		int NUM_BINS = 256;
-		double totalDistance = 0.0;
+		AtomicReference<Double> totalDistance = new AtomicReference<>(0.0);
 
-		for (int superpixelIndex = 0; superpixelIndex < this.getNumSuperpixels(); superpixelIndex++) {
+		IntStream.range(0, this.getNumSuperpixels()).parallel().forEach(superpixelIndex -> {
+
+//		for (int superpixelIndex = 0; superpixelIndex < this.getNumSuperpixels(); superpixelIndex++) {
 			double[] probDistBand1_P = probDistBand1_SP[superpixelIndex];
 			double[] probDistBand2_P = probDistBand2_SP[superpixelIndex];
 
@@ -353,9 +356,10 @@ public class Dataset implements IDataset {
 
 				return probDistBand1_P[i] * DoubleMath.log2(probDistBand1_P[i] / probDistBand2_P[i]);
 			}).sum();
-			totalDistance = totalDistance + Math.abs(kl);
-		}
-		return totalDistance;
+			totalDistance.set(totalDistance.get() + Math.abs(kl));
+//		}
+		});
+		return totalDistance.get();
 	}
 
 	private double calculateKlDivergenceSPmean(int bandIndex1, int bandIndex2) {
@@ -482,7 +486,9 @@ public class Dataset implements IDataset {
 			throw new IllegalStateException("SuperpixelContainer is not initialized.");
 		}
 
-		for (int bandIndex = 0; bandIndex < this.numBands; bandIndex++) {
+//		for (int bandIndex = 0; bandIndex < this.numBands; bandIndex++) {
+		IntStream.range(0, this.numBands).parallel().forEach(bandIndex -> {
+
 
 			double[][] probabilityDistributionSP = new double[this.getNumSuperpixels()][NUM_BINS];
 			INDArray bandData = this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
@@ -520,7 +526,8 @@ public class Dataset implements IDataset {
 				probabilityDistributionSP[superpixelIndex] = normalHistogram;
 			});
 			this.probabilityDistributionsSP[bandIndex] = probabilityDistributionSP;
-		}
+//		}
+		});
 	}
 
 
@@ -610,7 +617,7 @@ public class Dataset implements IDataset {
 		int NUM_BINS = 256;
 
 
-		double di = IntStream.range(0, NUM_BINS).mapToDouble(x -> {
+		double di = IntStream.range(0, NUM_BINS).parallel().mapToDouble(x -> {
 			return IntStream.range(0, NUM_BINS).mapToDouble(y -> {
 				if (probDistBand1[x] == 0.0 && probDistBand2[y] != 0.0) {
 					probDistBand1[x] = 0.0000001;
