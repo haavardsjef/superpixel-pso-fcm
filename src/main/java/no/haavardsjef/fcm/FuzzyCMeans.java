@@ -24,15 +24,11 @@ public class FuzzyCMeans implements IObjectiveFunction {
 	private final IDataset dataset;
 	private final INDArray data;
 	private final double fuzziness;
-	private final HashMap<String, Float> fitnessCache;
-	private final HashMap<String, Double> distanceCache;
 
 	public FuzzyCMeans(IDataset dataset, double fuzziness, DistanceMeasure distanceMeasure) {
 		this.dataset = dataset;
 		this.data = dataset.getData();
 		this.fuzziness = fuzziness;
-		this.fitnessCache = new HashMap<>();
-		this.distanceCache = new HashMap<>();
 		this.distanceMeasure = distanceMeasure;
 	}
 
@@ -86,16 +82,8 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		IntStream.range(0, numDataPoints).parallel().forEach(i -> {
 			INDArray distances = Nd4j.create(numClusters);
 			for (int j = 0; j < numClusters; j++) {
-				// check if distance is cached
-				String key = i + "," + candidateCentroids.get(j);
-				if (distanceCache.containsKey(key)) {
-					distances.putScalar(j, distanceCache.get(key));
-					continue;
-				} else {
-					double distance = dataset.distance(this.distanceMeasure, i, candidateCentroids.get(j));
-					distanceCache.put(key, distance);
-					distances.putScalar(j, distance);
-				}
+				double distance = dataset.distance(this.distanceMeasure, i, candidateCentroids.get(j));
+				distances.putScalar(j, distance);
 			}
 			INDArray distancesPow = Transforms.pow(distances.add(epsilon), -2.0 / (fuzziness - 1));
 			INDArray membershipDenominator = distancesPow.div(distancesPow.sum(0));
@@ -135,15 +123,8 @@ public class FuzzyCMeans implements IObjectiveFunction {
 		long startTime = System.currentTimeMillis();
 		float result = 0.0f;
 		// Check if we have already evaluated this solution
-		if (this.fitnessCache.containsKey(candidateSolution.toString())) {
-//			log.info("Found solution in cache. Returning cached fitness value.");
-			result = this.fitnessCache.get(candidateSolution.toString());
-		} else {
-			result = (float) this.objectiveFunction(candidateSolution);
+		result = (float) this.objectiveFunction(candidateSolution);
 
-			// Add to cache
-			this.fitnessCache.put(candidateSolution.toString(), result);
-		}
 
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
