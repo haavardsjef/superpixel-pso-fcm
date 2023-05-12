@@ -51,6 +51,7 @@ public class Dataset implements IDataset {
 	private double[][] KlDivergencesSuperpixelLevel;
 	private double[][] DisjointInfosSuperpixelLevel;
 	private final double[][] pixelEuclideanDistances;
+	private final double[][] SPEuclideanDistances;
 
 	private double[][][] histogramStatistics;  // 3D array to store the histogram statistics
 	private double[][][] klDivergence;  // 3D array to store the KL divergence values
@@ -68,6 +69,7 @@ public class Dataset implements IDataset {
 		this.calculateEntropies();
 
 		pixelEuclideanDistances = new double[numBands][numBands];
+		SPEuclideanDistances = new double[numBands][numBands];
 	}
 
 	public Dataset(DatasetName datasetName, boolean corrected) throws IOException {
@@ -77,6 +79,7 @@ public class Dataset implements IDataset {
 		this.calculateProbabilityDistributions();
 		this.calculateEntropies();
 		pixelEuclideanDistances = new double[numBands][numBands];
+		SPEuclideanDistances = new double[numBands][numBands];
 
 	}
 
@@ -235,14 +238,13 @@ public class Dataset implements IDataset {
 //		return bandData1.distance2(bandData2); // Returns the euclidean distance.
 //	}
 	public double euclideanDistanceSP(int bandIndex1, int bandIndex2) {
-		if (this.superpixelContainer == null) {
-			throw new IllegalStateException("SuperpixelContainer is not initialized.");
+		if (this.SPEuclideanDistances[bandIndex1][bandIndex2] == 0.0) {
+			double[] bandData1 = this.superpixelContainer.getSuperpixelMeansArr(bandIndex1);
+			double[] bandData2 = this.superpixelContainer.getSuperpixelMeansArr(bandIndex2);
+
+			SPEuclideanDistances[bandIndex1][bandIndex2] = euclideanDistance(bandData1, bandData2);
 		}
-
-		double[] bandData1 = this.superpixelContainer.getSuperpixelMeansArr(bandIndex1);
-		double[] bandData2 = this.superpixelContainer.getSuperpixelMeansArr(bandIndex2);
-
-		return euclideanDistance(bandData1, bandData2);
+		return SPEuclideanDistances[bandIndex1][bandIndex2];
 	}
 
 	private double euclideanDistance(double[] vector1, double[] vector2) {
