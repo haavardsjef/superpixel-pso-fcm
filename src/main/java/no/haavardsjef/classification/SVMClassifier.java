@@ -31,6 +31,41 @@ public class SVMClassifier implements IClassifier {
 		return evaluate(selectedBands, numClassificationRuns, 0.1);
 	}
 
+	public void justTrain(List<Integer> selectedBands, int numTrainingRuns, double trainingRatio) {
+		// Load features and ground truth
+		int[] groundTruth = dataset.getGroundTruthFlattenedAsArray();
+		double[][] pixelValuesForSelectedBands = dataset.getBandsFlattened(selectedBands).transpose().toDoubleMatrix();
+
+		// Count number of classes
+		int numClasses = Arrays.stream(groundTruth).max().getAsInt() + 1;
+
+
+		// Verify that the number of ground truths matches the number of pixels
+		if (pixelValuesForSelectedBands.length != groundTruth.length) {
+			throw new RuntimeException("The number of ground truths does not match the number of pixels");
+		}
+
+		// Create samples
+		Sample[] samples = new Sample[groundTruth.length];
+		for (int i = 0; i < pixelValuesForSelectedBands.length; i++) {
+			samples[i] = new Sample(i, groundTruth[i], pixelValuesForSelectedBands[i]);
+		}
+
+		// Run training runs
+		for (int i = 0; i < numTrainingRuns; i++) {
+
+
+			// Shuffle and split into training and test set
+			Sample[][] split = splitSamples(samples, trainingRatio);
+			Sample[] trainingSamples = split[0];
+			Sample[] testSamples = split[1];
+
+
+			svm_model model = trainWithoutGridSearch(trainingSamples);
+		}
+
+	}
+
 	public ClassificationResult evaluate(List<Integer> selectedBands, int numClassificationRuns, double trainingRatio) {
 		log.info("Evaluating SVM classifier with selected bands: " + selectedBands);
 
@@ -96,6 +131,30 @@ public class SVMClassifier implements IClassifier {
 		svm_model model = svm.svm_train(trainingProblem, bestParam);
 		long endTime = System.currentTimeMillis();
 		log.info("Training took " + (endTime - startTime) + " ms, excluding parameter search");
+
+		return model;
+	}
+
+	private svm_model trainWithoutGridSearch(Sample[] data) {
+
+
+		log.info("Training SVM classifier w.o. grid search with " + data.length + " samples");
+		svm_problem trainingProblem = createProblem(data);
+
+		// Find the best parameters using grid search
+		svm_parameter param = new svm_parameter();
+		param.svm_type = svm_parameter.C_SVC;
+		param.kernel_type = svm_parameter.RBF;
+		param.gamma = 1;
+		param.C = 10;
+		param.eps = 0.001;
+		param.cache_size = 100;
+
+
+		long startTime = System.currentTimeMillis();
+		svm_model model = svm.svm_train(trainingProblem, param);
+		long endTime = System.currentTimeMillis();
+		log.info("Training took " + (endTime - startTime) + " ms");
 
 		return model;
 	}
