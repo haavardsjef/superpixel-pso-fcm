@@ -8,6 +8,7 @@ import no.haavardsjef.utility.DistanceMeasure;
 import no.haavardsjef.utility.HyperspectralDataLoader;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.indexing.BooleanIndexing;
 import org.nd4j.linalg.indexing.conditions.Conditions;
@@ -44,9 +45,19 @@ public class Dataset implements IDataset {
 
 	private double[][] probabilityDistributionsSPmean;
 	private double[][] correlationCoefficientsSPmean;
+
+
 	private double[][][] probabilityDistributionsSP;
 	private double[][] KlDivergencesSuperpixelLevel;
 	private double[][] DisjointInfosSuperpixelLevel;
+
+	private double[][][] histogramStatistics;  // 3D array to store the histogram statistics
+	private double[][][] klDivergence;  // 3D array to store the KL divergence values
+	private int[][] superpixelSegmentation;  // 2D array to store the superpixel segmentation
+
+	private int numSuperpixels;
+
+	private final int NUM_BINS = 256;
 
 	public Dataset(DatasetName datasetName) throws IOException {
 		this.datasetPath = "data/" + datasetName;
@@ -105,11 +116,22 @@ public class Dataset implements IDataset {
 	 */
 	public void setupSuperpixelContainer(int numSuperpixels, float spatialWeight) {
 		this.superpixelContainer = new SuperpixelContainer(this.data, numSuperpixels, spatialWeight);
+		this.numSuperpixels = this.superpixelContainer.getNumSuperpixels();
+		this.superpixelSegmentation = this.superpixelContainer.getSuperixelmap().toIntMatrix();
+
 	}
 
 	public void setupSuperpixelContainer() {
 		this.superpixelContainer = new SuperpixelContainer(this.data, 100, 200f);
+		this.numSuperpixels = this.superpixelContainer.getNumSuperpixels();
+		this.superpixelSegmentation = this.superpixelContainer.getSuperixelmap().toIntMatrix();
 	}
+
+
+	public double[][][] getProbabilityDistributionsSP() {
+		return probabilityDistributionsSP;
+	}
+
 
 	/**
 	 * Calculates the euclidean distance between two bands, using all pixels.
@@ -376,7 +398,8 @@ public class Dataset implements IDataset {
 	 */
 	public void calculateKlDivergencesSuperpixelLevel() {
 
-		this.calculateProbabilityDistributionsSP();
+//		this.calculateProbabilityDistributionsSP();
+		this.computeHistogramStatistics();
 
 		this.KlDivergencesSuperpixelLevel = new double[this.numBands][this.numBands];
 		for (int bandindex1 = 0; bandindex1 < this.numBands; bandindex1++) {
@@ -388,8 +411,8 @@ public class Dataset implements IDataset {
 
 	private double calculateKlDivergenceSP(int bandIndex1, int bandIndex2) {
 
-		double[][] probDistBand1_SP = this.probabilityDistributionsSP[bandIndex1];
-		double[][] probDistBand2_SP = this.probabilityDistributionsSP[bandIndex2];
+		double[][] probDistBand1_SP = this.histogramStatistics[bandIndex1];
+		double[][] probDistBand2_SP = this.histogramStatistics[bandIndex2];
 
 		int NUM_BINS = 256;
 		AtomicReference<Double> totalDistance = new AtomicReference<>(0.0);
@@ -719,6 +742,56 @@ public class Dataset implements IDataset {
 			throw new IllegalStateException("SuperpixelContainer is not initialized.");
 		}
 		return this.superpixelContainer.getSuperpixelIndex(pixelIndex);
+	}
+
+	public void computeHistogramStatistics() {
+		// Initialize histogramStatistics
+		this.histogramStatistics = new double[this.numBands][this.numSuperpixels][NUM_BINS];
+
+		IntStream.range(0, this.numBands).parallel().forEach(bandIndex -> {
+			INDArray bandData = this.data.get(NDArrayIndex.point(bandIndex), NDArrayIndex.all(), NDArrayIndex.all());
+
+			IntStream.range(0, this.numSuperpixels).parallel().forEach(superpixelIndex -> {
+				boolean[][] superpixelMask = getSuperpixelMask(superpixelIndex);
+				INDArray superpixelBandData = Nd4j.zeros(numPixels);
+				for (int i = 0; i < numPixels; i++) {
+					if (superpixelMask[i / superpixelSegmentation[0].length][i % superpixelSegmentation[0].length]) {
+						superpixelBandData.putScalar(i, bandData.getDouble(i));
+					}
+				}
+
+				double max = (double) superpixelBandData.maxNumber();
+				BooleanIndexing.replaceWhere(superpixelBandData, 5000, Conditions.equals(0.0));
+				double min = (double) superpixelBandData.minNumber();
+
+				int[] histogram = new int[NUM_BINS];
+				int countp = 0;
+
+				for (int pixelIndex = 0; pixelIndex < superpixelBandData.length(); pixelIndex++) {
+					double p = superpixelBandData.getDouble(pixelIndex);
+					if (p != 5000) {
+						int bin = (int) Math.floor((p - min) / (max - min) * (NUM_BINS - 1));
+						histogram[bin] += 1;
+						countp += 1;
+					}
+				}
+
+				// Normalize histogram into probability distribution
+				for (int i = 0; i < NUM_BINS; i++) {
+					histogramStatistics[bandIndex][superpixelIndex][i] = (double) histogram[i] / (double) (countp);
+				}
+			});
+		});
+	}
+
+	private boolean[][] getSuperpixelMask(int superpixelIndex) {
+		boolean[][] mask = new boolean[superpixelSegmentation.length][superpixelSegmentation[0].length];
+		for (int i = 0; i < superpixelSegmentation.length; i++) {
+			for (int j = 0; j < superpixelSegmentation[i].length; j++) {
+				mask[i][j] = superpixelSegmentation[i][j] == superpixelIndex;
+			}
+		}
+		return mask;
 	}
 
 
