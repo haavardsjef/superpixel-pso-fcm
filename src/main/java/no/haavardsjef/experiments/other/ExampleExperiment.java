@@ -21,49 +21,54 @@ import java.util.List;
 
 @Log4j2
 public class ExampleExperiment implements IExperiment {
-    @Override
-    public void runExperiment() throws IOException {
-        Dataset dataset = new Dataset(DatasetName.indian_pines); // Choose dataset
-        dataset.setupSuperpixelContainer(); // Setup superpixel container, needs to be done if using superpixels
-        dataset.calculateProbabilityDistributionsSPmean();
-      ///  dataset.calculateCorrelationCoefficients_SP();
-        dataset.calculateKlDivergencesSuperpixelLevel();
-        dataset.calculateDisjointInfoSuperpixelLevel();
-        
-        DistanceMeasure distanceMeasure = DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM; // Choose distance measure
-        Bounds bounds = dataset.getBounds(); // Get bounds for PSO
-        IObjectiveFunction fcm = new FuzzyCMeans(dataset, 2.0, distanceMeasure);
+	@Override
+	public void runExperiment() throws IOException {
+		Dataset dataset = new Dataset(DatasetName.Pavia); // Choose dataset
+//		dataset.precomputeEuclideanDistances();
+		dataset.setupSuperpixelContainer(900, 10000f); // Setup superpixel container, needs to be done if using superpixels
+//		dataset.calculateProbabilityDistributionsSPmean(); //SP_MEAN_KL_Divergence, SP_MEAN_DISJOINT, SP_MEAN_COR_COF
+//		dataset.calculateDisjointInfoSuperpixelLevel(); //SP_MEAN_DISJOINT
+		dataset.calculateKlDivergencesSuperpixelLevel(); //SP_LEVEL_KL_DIVERGENCE_L1NORM}
 
-        int numberOfBandsToSelect = 20;
-        PSOParams params = new PSOParams(numberOfBandsToSelect); // Using default pso parameters
+		DistanceMeasure distanceMeasure = DistanceMeasure.SP_LEVEL_KL_DIVERGENCE_L1NORM; // Choose distance measure
+		Bounds bounds = dataset.getBounds(); // Get bounds for PSO
+		IObjectiveFunction fcm = new FuzzyCMeans(dataset, 2.0, distanceMeasure);
 
-        // PSO-FCM to select cluster centers
-        SwarmPopulation swarmPopulation = new SwarmPopulation(params.numParticles, numberOfBandsToSelect, bounds, fcm);
-        Particle solution = swarmPopulation.optimize(params.numIterations, params.w, params.c1, params.c2, false, true);
-        List<Integer> clusterCenters = solution.getDiscretePositionSorted();
+		int numberOfBandsToSelect = 20;
+		PSOParams params = new PSOParams(numberOfBandsToSelect); // Using default pso parameters
 
-        // Select cluster representatives
-        ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
-        cr.hardClusterBands(clusterCenters);
-        List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCenters); // In this example, select with highest entropy
+		long startTime = System.currentTimeMillis();
+		// PSO-FCM to select cluster centers
+		SwarmPopulation swarmPopulation = new SwarmPopulation(params.numParticles, numberOfBandsToSelect, bounds, fcm);
+		Particle solution = swarmPopulation.optimize(100, params.w, params.c1, params.c2, false, false);
+		long endTime = System.currentTimeMillis();
+		long duration = (endTime - startTime);
+		log.info("PSO-FCM time: " + duration + "ms");
 
-        // SVM Classification
-        int numClassificationRuns = 10;
-        SVMClassifier classifier = new SVMClassifier(dataset);
-        ClassificationResult result = classifier.evaluate(selectedBands, numClassificationRuns);
+		List<Integer> clusterCenters = solution.getDiscretePositionSorted();
 
-        DescriptiveStatistics OA = result.getOverallAccuracy();
-        DescriptiveStatistics AOA = result.getAverageOverallAccuracy();
+		// Select cluster representatives
+		ClusterRepresentatives cr = new ClusterRepresentatives(dataset);
+		cr.hardClusterBands(clusterCenters);
+		List<Integer> selectedBands = cr.highestEntropyRepresentative(clusterCenters); // In this example, select with highest entropy
 
-        log.info("OA: " + OA.getMean() + " ( SD:" + OA.getStandardDeviation() + ")");
-        log.info("AOA: " + AOA.getMean() + " ( SD:" + AOA.getStandardDeviation() + ")");
-    }
+		// SVM Classification
+		int numClassificationRuns = 10;
+		SVMClassifier classifier = new SVMClassifier(dataset);
+		ClassificationResult result = classifier.evaluate(selectedBands, numClassificationRuns);
 
-    public static void main(String[] args) {
-        try {
-            new ExampleExperiment().runExperiment();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		DescriptiveStatistics OA = result.getOverallAccuracy();
+		DescriptiveStatistics AOA = result.getAverageOverallAccuracy();
+
+		log.info("OA: " + OA.getMean() + " ( SD:" + OA.getStandardDeviation() + ")");
+		log.info("AOA: " + AOA.getMean() + " ( SD:" + AOA.getStandardDeviation() + ")");
+	}
+
+	public static void main(String[] args) {
+		try {
+			new ExampleExperiment().runExperiment();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

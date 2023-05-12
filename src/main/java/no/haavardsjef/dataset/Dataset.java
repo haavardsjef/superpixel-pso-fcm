@@ -50,6 +50,7 @@ public class Dataset implements IDataset {
 	private double[][][] probabilityDistributionsSP;
 	private double[][] KlDivergencesSuperpixelLevel;
 	private double[][] DisjointInfosSuperpixelLevel;
+	private final double[][] pixelEuclideanDistances;
 
 	private double[][][] histogramStatistics;  // 3D array to store the histogram statistics
 	private double[][][] klDivergence;  // 3D array to store the KL divergence values
@@ -65,6 +66,8 @@ public class Dataset implements IDataset {
 		this.load(true);
 		this.calculateProbabilityDistributions();
 		this.calculateEntropies();
+
+		pixelEuclideanDistances = new double[numBands][numBands];
 	}
 
 	public Dataset(DatasetName datasetName, boolean corrected) throws IOException {
@@ -73,6 +76,8 @@ public class Dataset implements IDataset {
 		this.load(corrected);
 		this.calculateProbabilityDistributions();
 		this.calculateEntropies();
+		pixelEuclideanDistances = new double[numBands][numBands];
+
 	}
 
 
@@ -147,11 +152,31 @@ public class Dataset implements IDataset {
 //		return bandData1.distance2(bandData2); // Returns the euclidean distance.
 //	}
 	public double euclideanDistance(int bandIndex1, int bandIndex2) {
-		double[][] bandData1 = this.dataAsArray[bandIndex1];
-		double[][] bandData2 = this.dataAsArray[bandIndex2];
+		if (pixelEuclideanDistances[bandIndex1][bandIndex2] == 0.0) {
+			double[][] bandData1 = this.dataAsArray[bandIndex1];
+			double[][] bandData2 = this.dataAsArray[bandIndex2];
 
-		return calculateEuclideanDistance(bandData1, bandData2);
+			pixelEuclideanDistances[bandIndex1][bandIndex2] = calculateEuclideanDistance(bandData1, bandData2);
+		}
+		return pixelEuclideanDistances[bandIndex1][bandIndex2];
 	}
+
+//	public void precomputeEuclideanDistances() {
+//		for (int i = 0; i < numBands; i++) {
+//			for (int j = 0; j < numBands; j++) {
+//				if (i == j) {
+//					pixelEuclideanDistances[i][j] = 0.0;
+//					continue;
+//				}
+//
+//
+//				double[][] bandData1 = this.dataAsArray[i];
+//				double[][] bandData2 = this.dataAsArray[j];
+//
+//				pixelEuclideanDistances[i][j] = calculateEuclideanDistance(bandData1, bandData2);
+//			}
+//		}
+//	}
 
 	private double calculateEuclideanDistance(double[][] bandData1, double[][] bandData2) {
 		int numRows = bandData1.length;

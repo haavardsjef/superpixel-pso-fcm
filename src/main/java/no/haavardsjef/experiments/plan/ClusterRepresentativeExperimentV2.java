@@ -33,7 +33,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 		String filterString = "attributes.status = 'FINISHED' and params.dataset = 'Salinas' and params.distanceMeasure != 'SP_MEAN_EUCLIDEAN'";
 
 		// Search for active runs in the specified experiment with id "4"
-		List<Service.Run> runs = client.searchRuns(List.of(experimentId), filterString, Service.ViewType.ACTIVE_ONLY, 1000).getItems();
+		List<Service.Run> runs = client.searchRuns(List.of(experimentId), filterString, Service.ViewType.ACTIVE_ONLY, 2000).getItems();
 
 		log.info("Found " + runs.size() + " finished runs");
 
@@ -42,6 +42,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 			String distanceMeasureString = "";
 			String clusterCenters = "";
 			String numBands = "";
+			String numIterationsRan = "";
 
 			for (Service.Param param : run.getData().getParamsList()) {
 				if (param.getKey().equals("clusterCentroids")) {
@@ -52,6 +53,9 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 				}
 				if (param.getKey().equals("numBands")) {
 					numBands = param.getValue();
+				}
+				if (param.getKey().equals("numIterationsRan")) {
+					numIterationsRan = param.getValue();
 				}
 			}
 
@@ -103,6 +107,7 @@ public class ClusterRepresentativeExperimentV2 implements IExperiment {
 				mlFlow.logParam("representativeMethod", representativeMethod.toString());
 				mlFlow.logParam("dataset", ds.getDatasetName().toString());
 				mlFlow.logParam("distanceMeasure", distanceMeasureString);
+				mlFlow.logParam("numIterationsRan", numIterationsRan);
 				List<Integer> selectedBands = cr.selectRepresentatives(clusterCentersList, representativeMethod);
 				mlFlow.logParam("selectedBands", selectedBands.toString());
 				log.info("Selected bands: " + selectedBands);
