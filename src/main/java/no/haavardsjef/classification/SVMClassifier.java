@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static no.haavardsjef.classification.ClassificationUtilities.saveConfusionMatrixToCSV;
-import static no.haavardsjef.classification.ClassificationUtilities.splitSamples;
+import static no.haavardsjef.classification.ClassificationUtilities.*;
 
 @Log4j2
 public class SVMClassifier implements IClassifier {
@@ -114,6 +113,71 @@ public class SVMClassifier implements IClassifier {
 
 
 		return classificationResult;
+
+	}
+
+	/**
+	 * Train both models with the same training data, and generate contingency table.
+	 *
+	 * @param selectedBands1
+	 * @param selectedBands2
+	 * @param numClassificationRuns
+	 * @param trainingRatio
+	 */
+	public int[][] compareBandSubsets(List<Integer> selectedBands1, List<Integer> selectedBands2, double trainingRatio, boolean useGridSearch) {
+		log.info("Comparing band subsets with selected bands: " + selectedBands1 + " and " + selectedBands2);
+
+
+		// Load features and ground truth
+		int[] groundTruth = dataset.getGroundTruthFlattenedAsArray();
+		double[][] pixelValuesForSelectedBands1 = dataset.getBandsFlattened(selectedBands1).transpose().toDoubleMatrix();
+		double[][] pixelValuesForSelectedBands2 = dataset.getBandsFlattened(selectedBands2).transpose().toDoubleMatrix();
+
+		// Count number of classes
+		int numClasses = Arrays.stream(groundTruth).max().getAsInt() + 1;
+
+		// Create samples
+		Sample[] samples1 = new Sample[groundTruth.length];
+		Sample[] samples2 = new Sample[groundTruth.length];
+		for (int i = 0; i < pixelValuesForSelectedBands1.length; i++) {
+			samples1[i] = new Sample(i, groundTruth[i], pixelValuesForSelectedBands1[i]);
+			samples2[i] = new Sample(i, groundTruth[i], pixelValuesForSelectedBands2[i]);
+		}
+
+
+		// Create classification result
+		// Using numClasses - 1 because the background class is not included in the classification result
+		ClassificationResult classificationResult1 = new ClassificationResult(numClasses - 1);
+		ClassificationResult classificationResult2 = new ClassificationResult(numClasses - 1);
+
+
+		// Shuffle and split into training and test set, collectively
+		Sample[][][] split = splitSamplesForComparison(samples1, samples2, trainingRatio);
+
+		Sample[] trainingSamples1 = split[0][0];
+		Sample[] testSamples1 = split[0][1];
+		Sample[] trainingSamples2 = split[1][0];
+		Sample[] testSamples2 = split[1][1];
+
+
+		svm_model model1 = null;
+		svm_model model2 = null;
+
+		if (useGridSearch) {
+			model1 = train(trainingSamples1);
+			model2 = train(trainingSamples2);
+		} else {
+			model1 = trainWithoutGridSearch(trainingSamples1);
+			model2 = trainWithoutGridSearch(trainingSamples2);
+		}
+		List<Prediction> predictions1 = evaluateAccuracy(model1, testSamples1, numClasses);
+		List<Prediction> predictions2 = evaluateAccuracy(model2, testSamples2, numClasses);
+		classificationResult1.addRun(predictions1);
+		classificationResult2.addRun(predictions2);
+
+
+		return contingencyTable;
+
 
 	}
 

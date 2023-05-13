@@ -46,6 +46,69 @@ public class ClassificationUtilities {
 		return normalized;
 	}
 
+	/**
+	 * Same as method above, but makes sure that both Sample[] are split in the same way.
+	 */
+	public static Sample[][][] splitSamplesForComparison(Sample[] samples1, Sample[] samples2, double trainingRatio) {
+		// Create empty training and testing set
+		List<Sample> trainingSamples = new ArrayList<>();
+		List<Sample> testSamples = new ArrayList<>();
+
+
+		// Remove unlabeled pixels/samples
+		Sample[] filtered = Arrays.stream(samples1).filter(s -> s.label() != 0).toArray(Sample[]::new);
+
+		// Group samples by label
+		Map<Integer, List<Sample>> grouped = Arrays.stream(filtered).collect(groupingBy(Sample::label));
+
+		// For each label, shuffle and then select training and testing samples
+		grouped.entrySet().forEach(sampleList -> {
+			Collections.shuffle(sampleList.getValue());
+			long splitIndex = (long) Math.ceil(sampleList.getValue().size() * trainingRatio);
+			trainingSamples.addAll(sampleList.getValue().subList(0, (int) splitIndex));
+			testSamples.addAll(sampleList.getValue().subList((int) splitIndex, sampleList.getValue().size()));
+		});
+
+		// Split samples2 in the same way as samples1
+		List<Sample> trainingSamples2 = new ArrayList<>();
+		List<Sample> testSamples2 = new ArrayList<>();
+		for (Sample trainingSample : trainingSamples) {
+			for (Sample sample : samples2) {
+				if (sample.pixelIndex() == trainingSample.pixelIndex()) {
+					trainingSamples2.add(sample);
+					break;
+				}
+			}
+		}
+		for (Sample testSample : testSamples) {
+			for (Sample sample : samples2) {
+				if (sample.pixelIndex() == testSample.pixelIndex()) {
+					testSamples2.add(sample);
+					break;
+				}
+			}
+		}
+
+		// Verify that index 0 in both lists have the same pixel index
+		if (trainingSamples.get(0).pixelIndex() != trainingSamples2.get(0).pixelIndex()) {
+			throw new RuntimeException("Pixel index mismatch");
+		}
+
+
+		// Convert training and test samples lists to arrays
+		Sample[] trainingSamplesArray1 = trainingSamples.toArray(new Sample[0]);
+		Sample[] testSamplesArray1 = testSamples.toArray(new Sample[0]);
+		Sample[] trainingSamplesArray2 = trainingSamples2.toArray(new Sample[0]);
+		Sample[] testSamplesArray2 = testSamples2.toArray(new Sample[0]);
+
+		// Normalize samples together
+		Sample[][] normalized1 = normalizeTogether(trainingSamplesArray1, testSamplesArray1);
+		Sample[][] normalized2 = normalizeTogether(trainingSamplesArray2, testSamplesArray2);
+
+
+		return new Sample[][][]{normalized1, normalized2};
+	}
+
 	public static Sample[][] normalizeTogether(Sample[] training, Sample[] testing) {
 		Sample[] all = ArrayUtils.addAll(training, testing);
 
