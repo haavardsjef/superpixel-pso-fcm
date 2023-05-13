@@ -148,10 +148,43 @@ public class ClassificationUtilities {
 						row.append(",");
 					}
 				}
-				writer.println(row.toString());
+				writer.println(row);
 			}
 		} catch (FileNotFoundException e) {
 			System.err.println("Error saving confusion matrix to CSV file: " + e.getMessage());
 		}
+	}
+
+	public static int[][] constructContingencyTable(List<Prediction> predictions1, List<Prediction> predictions2) {
+		// Verify that both lists have the same size
+		if (predictions1.size() != predictions2.size()) {
+			throw new RuntimeException("Prediction lists have different sizes");
+		}
+
+		// Create contingency table
+		int[][] contingencyTable = new int[2][2];
+
+		// For each prediction, increment the corresponding cell in the contingency table
+		for (int i = 0; i < predictions1.size(); i++) {
+			Prediction prediction1 = predictions1.get(i);
+			Prediction prediction2 = predictions2.get(i);
+
+			// Make sure the pixelIndex is the same for both predictions
+			if (prediction1.pixelIndex() != prediction2.pixelIndex()) {
+				throw new RuntimeException("Pixel index mismatch");
+			}
+
+
+			if (prediction1.trueLabel() == prediction1.predictedLabel() && prediction2.trueLabel() == prediction2.predictedLabel()) {
+				contingencyTable[0][0]++;
+			} else if (prediction1.trueLabel() == prediction1.predictedLabel() && prediction2.trueLabel() != prediction2.predictedLabel()) {
+				contingencyTable[0][1]++;
+			} else if (prediction1.trueLabel() != prediction1.predictedLabel() && prediction2.trueLabel() == prediction2.predictedLabel()) {
+				contingencyTable[1][0]++;
+			} else if (prediction1.trueLabel() != prediction1.predictedLabel() && prediction2.trueLabel() != prediction2.predictedLabel()) {
+				contingencyTable[1][1]++;
+			}
+		}
+		return contingencyTable;
 	}
 }

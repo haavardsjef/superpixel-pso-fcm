@@ -175,6 +175,8 @@ public class SVMClassifier implements IClassifier {
 		classificationResult1.addRun(predictions1);
 		classificationResult2.addRun(predictions2);
 
+		// Generate contingency table
+		int[][] contingencyTable = constructContingencyTable(predictions1, predictions2);
 
 		return contingencyTable;
 
