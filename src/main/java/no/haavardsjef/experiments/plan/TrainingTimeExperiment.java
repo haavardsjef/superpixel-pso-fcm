@@ -11,6 +11,8 @@ import no.haavardsjef.utility.Bounds;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.IntStream;
 
 @Log4j2
 public class TrainingTimeExperiment implements IExperiment {
@@ -34,9 +36,8 @@ public class TrainingTimeExperiment implements IExperiment {
 	}
 
 	public static void main(String[] args) {
-		BaseLineExperiment baseLineExperiment = new BaseLineExperiment();
 		try {
-			baseLineExperiment.runExperiment();
+			new TrainingTimeExperiment().runExperiment();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
