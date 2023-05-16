@@ -121,7 +121,6 @@ public class SVMClassifier implements IClassifier {
 	 *
 	 * @param selectedBands1
 	 * @param selectedBands2
-	 * @param numClassificationRuns
 	 * @param trainingRatio
 	 */
 	public int[][] compareBandSubsets(List<Integer> selectedBands1, List<Integer> selectedBands2, double trainingRatio, boolean useGridSearch) {
