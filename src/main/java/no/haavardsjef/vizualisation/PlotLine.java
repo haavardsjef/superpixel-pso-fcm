@@ -34,7 +34,7 @@ public abstract class PlotLine {
 		}
 	}
 
-	public static void plotMultiple(List<Double>... data) {
+	public static void plotMultiple(List<List<Double>> data) {
 		// Create x and y lists
 
 		Plot plt = Plot.create();
@@ -56,6 +56,7 @@ public abstract class PlotLine {
 			e.printStackTrace();
 		}
 	}
+
 
 	public static void barChart(List<Double> data) {
 		// Create x and y lists
